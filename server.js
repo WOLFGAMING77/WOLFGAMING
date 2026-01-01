@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const cors = require('cors');
+const crypto = require('crypto');
 const app = express();
 
 // הגדרות Render ופורט
@@ -15,24 +16,33 @@ const BASE_URL = process.env.RENDER_EXTERNAL_URL || 'https://thirty-rooms-shop.l
 app.use(cors());
 app.use(express.json());
 
-// Header לעקיפת אזהרות טונל (שימושי גם לבדיקות מקומיות)
+// Header לעקיפת אזהרות טונל
 app.use((req, res, next) => {
     res.setHeader('Bypass-Tunnel-Reminder', 'true');
     next();
 });
 
-// משתני סביבה
+// משתני סביבה מה-.env
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_HOST = process.env.EMAIL_HOST || '127.0.0.1';
 const EMAIL_PORT = process.env.EMAIL_PORT || 1025;
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_IDS = [process.env.TELEGRAM_CHAT_ID_1, process.env.TELEGRAM_CHAT_ID_2].filter(Boolean);
+const NOWPAYMENTS_API_KEY = process.env.NOWPAYMENTS_API_KEY;
+const NOWPAYMENTS_IPN_SECRET = process.env.NOWPAYMENTS_IPN_SECRET;
 
-// מסד נתונים SQLite
+// מסד נתונים SQLite - כולל סנכרון עמודת order_id
 const db = new sqlite3.Database('./database.sqlite');
 db.serialize(() => {
-    db.run("CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, payment_id TEXT, amount TEXT, status TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)");
+    db.run(`CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        payment_id TEXT,
+        order_id TEXT,
+        amount TEXT,
+        status TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
 });
 
 // הגדרת Nodemailer פנימי
@@ -61,8 +71,7 @@ const sendTelegram = async (message) => {
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'terms.html')));
 
-// --- דפי תגובה מעוצבים WOLF GAMING ---
-
+// דפי תגובה מעוצבים WOLF GAMING
 const styles = `
     <style>
         body { background: #050505; color: white; font-family: sans-serif; text-align: center; padding-top: 100px; }
@@ -74,31 +83,14 @@ const styles = `
 `;
 
 app.get('/success', (req, res) => {
-    res.send(`
-        ${styles}
-        <div class="status-card">
-            <div class="logo">WOLF GAMING</div>
-            <h1 style="color:#00ff88;">✅ Payment Successful!</h1>
-            <p>Your credits are being processed. Check your email/telegram for confirmation.</p>
-            <a href="/" class="btn">Back to Store</a>
-        </div>
-    `);
+    res.send(`${styles}<div class="status-card"><div class="logo">WOLF GAMING</div><h1 style="color:#00ff88;">✅ Payment Successful!</h1><p>Your credits are being processed.</p><a href="/" class="btn">Back to Store</a></div>`);
 });
 
 app.get('/cancel', (req, res) => {
-    res.send(`
-        ${styles}
-        <div class="status-card">
-            <div class="logo" style="color:#ff4444; text-shadow: 0 0 10px #ff4444;">WOLF GAMING</div>
-            <h1 style="color:#ff4444;">❌ Payment Cancelled</h1>
-            <p>The transaction was not completed. You can try again at any time.</p>
-            <a href="/" class="btn" style="color:#ff4444; border-color:#ff4444;">Back to Store</a>
-        </div>
-    `);
+    res.send(`${styles}<div class="status-card"><div class="logo" style="color:#ff4444; text-shadow: 0 0 10px #ff4444;">WOLF GAMING</div><h1 style="color:#ff4444;">❌ Payment Cancelled</h1><p>The transaction was not completed.</p><a href="/" class="btn" style="color:#ff4444; border-color:#ff4444;">Back to Store</a></div>`);
 });
 
-// --- לוגיקת תשלום ---
-
+// לוגיקת תשלום
 app.get('/pay/:amount', async (req, res) => {
     const amountIls = req.params.amount;
     try {
@@ -114,17 +106,13 @@ app.get('/pay/:amount', async (req, res) => {
             success_url: `${BASE_URL}/success`,
             cancel_url: `${BASE_URL}/cancel`
         }, {
-            headers: { 
-                'x-api-key': process.env.NOWPAYMENTS_API_KEY, 
-                'Content-Type': 'application/json' 
-            }
+            headers: { 'x-api-key': NOWPAYMENTS_API_KEY, 'Content-Type': 'application/json' }
         });
 
-        db.run("INSERT INTO transactions (payment_id, amount, status) VALUES (?, ?, ?)", 
-               [response.data.id, amountIls, 'waiting']);
+        db.run("INSERT INTO transactions (payment_id, order_id, amount, status) VALUES (?, ?, ?, ?)", 
+               [response.data.id, response.data.order_id, amountIls, 'waiting']);
 
         await sendTelegram(`<b>🆕 הזמנה נוצרה - WOLF GAMING</b>\nסכום: ₪${amountIls}\nממתין לתשלום ב-USDT.`);
-
         res.redirect(response.data.invoice_url);
 
     } catch (error) {
