@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WOLF GAMING - Premium Credits</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Assistant:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #00f2ff; --neon-purple: #bc13fe; --bg: #050505; --card: #111; }
+        body { font-family: 'Assistant', sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        .container { text-align: center; padding: 2rem; width: 100%; max-width: 900px; flex-grow: 1; }
+        .logo-section { margin-top: 40px; margin-bottom: 3rem; }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; margin: 0; color: #fff; text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 40px var(--neon); letter-spacing: 5px; }
+        .tagline { font-size: 1.2rem; color: #aaa; letter-spacing: 2px; margin-top: 10px; }
+        
+        .packages { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 40px; }
+        .package { background: var(--card); border: 1px solid #333; padding: 30px; border-radius: 20px; transition: 0.4s; position: relative; cursor: pointer; overflow: hidden; }
+        .package:hover { transform: translateY(-10px); border-color: var(--neon); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+        .package h2 { font-family: 'Orbitron', sans-serif; font-size: 2rem; margin: 10px 0; color: var(--neon); }
+        .package p { color: #888; font-size: 0.9rem; }
+        .package .price { font-size: 2.5rem; font-weight: bold; margin: 20px 0; display: block; }
+        
+        .custom-section { background: var(--card); border: 1px solid #333; padding: 30px; border-radius: 20px; max-width: 500px; margin: 0 auto 40px; }
+        .custom-section h3 { margin-bottom: 20px; color: #fff; font-family: 'Orbitron', sans-serif; }
+        input { background: #000; border: 1px solid #444; padding: 15px; border-radius: 10px; color: #fff; width: 80%; font-size: 1.2rem; text-align: center; margin-bottom: 20px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple); }
+        
+        .btn { background: none; border: 2px solid var(--neon); color: var(--neon); padding: 15px 40px; border-radius: 50px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.4s; text-transform: uppercase; font-family: 'Orbitron', sans-serif; }
+        .btn:hover { background: var(--neon); color: #000; box-shadow: 0 0 30px var(--neon); }
+        
+        .btn-purple { border-color: var(--neon-purple); color: var(--neon-purple); }
+        .btn-purple:hover { background: var(--neon-purple); color: #fff; box-shadow: 0 0 30px var(--neon-purple); }
+
+        .contact-info { margin: 40px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; border: 1px solid #222; }
+        .contact-info a { color: var(--neon); text-decoration: none; margin: 0 15px; font-weight: bold; transition: 0.3s; }
+        .contact-info a:hover { text-shadow: 0 0 10px var(--neon); }
+
+        footer { padding: 30px; width: 100%; text-align: center; color: #555; font-size: 0.9rem; }
+        footer a { color: #888; text-decoration: none; margin: 0 10px; }
+        footer a:hover { color: var(--neon); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-section">
+            <h1>WOLF GAMING</h1>
+            <div class="tagline">חנות גיימינג דיגיטלית יוקרתית</div>
+        </div>
+
+        <div class="packages">
+            <div class="package" onclick="pay(100)">
+                <p>חבילת ברונזה</p>
+                <h2>STARTER</h2>
+                <span class="price">₪100</span>
+                <button class="btn">בחר</button>
+            </div>
+            <div class="package" onclick="pay(500)">
+                <p>חבילת זהב</p>
+                <h2>PRO</h2>
+                <span class="price">₪500</span>
+                <button class="btn">בחר</button>
+            </div>
+            <div class="package" onclick="pay(1000)">
+                <p>חבילת יהלום</p>
+                <h2>ELITE</h2>
+                <span class="price">₪1000</span>
+                <button class="btn">בחר</button>
+            </div>
+        </div>
+
+        <div class="custom-section">
+            <h3>טעינה ידנית</h3>
+            <input type="number" id="customAmount" placeholder="הכנס סכום (₪)">
+            <br>
+            <button class="btn btn-purple" onclick="payCustom()">טען עכשיו</button>
+        </div>
+
+        <div class="contact-info">
+            <h3>צור קשר</h3>
+            <a href="mailto:WOLFGAMINGE@OUTLOOK.CO.IL">WOLFGAMINGE@OUTLOOK.CO.IL</a>
+            <a href="https://t.me/WOLFGAMING_BOT" target="_blank">TELEGRAM SUPPORT</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 WOLF GAMING. All rights reserved.</p>
+        <p><a href="/terms">Terms of Service</a> | <a href="/terms">Refund Policy</a></p>
+    </footer>
+
+    <script>
+        function pay(amount) {
+            window.location.href = `/pay/${amount}`;
+        }
+        function payCustom() {
+            const val = document.getElementById('customAmount').value;
+            if (val && val > 0) pay(val);
+        }
+    </script>
+</body>
+</html>
