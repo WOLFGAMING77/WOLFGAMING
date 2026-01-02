@@ -198,15 +198,76 @@
 
         footer {
             text-align: center;
-            padding: 60px 20px;
-            color: #555;
-            border-top: 1px solid #111;
+            padding: 80px 20px;
+            background: #030303;
+            color: #888;
+            border-top: 1px solid #1a1a1a;
+            font-size: 0.95rem;
         }
 
-        a { color: var(--primary); text-decoration: none; }
+        .footer-logo {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+            display: inline-block;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        .payment-methods {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+        }
+
+        .payment-methods img {
+            height: 30px;
+            filter: grayscale(1);
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+
+        .payment-methods img:hover {
+            filter: grayscale(0);
+            opacity: 1;
+        }
+
+        .footer-links {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #ccc;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 8px var(--primary);
+        }
+
+        .copyright {
+            color: #444;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .social-icon {
+            font-size: 1.2rem;
+        }
 
         @media (max-width: 768px) {
             .logo { font-size: 2.5rem; }
+            .footer-links { flex-direction: column; gap: 15px; }
         }
     </style>
 </head>
@@ -301,12 +362,29 @@
     </div>
 
     <footer>
-        <p>&copy; 2025 WOLF GAMING. All rights reserved.</p>
-        <p>
-            <a href="/terms">Terms of Service</a> | 
-            <a href="/terms">Refund Policy</a> | 
-            <a href="mailto:WOLFGAMINGE@OUTLOOK.CO.IL">Contact Support</a>
-        </p>
+        <div class="footer-logo orbitron">WOLF GAMING</div>
+        
+        <div class="payment-methods">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" alt="Bitcoin">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Tether_Logo.svg" alt="USDT">
+        </div>
+
+        <div class="footer-links">
+            <a href="mailto:WOLFGAMING@OUTLOOK.CO.IL">
+                <span>📧</span> WOLFGAMING@OUTLOOK.CO.IL
+            </a>
+            <a href="https://t.me/id8562794984" target="_blank">
+                <span>✈️</span> Telegram Support
+            </a>
+            <a href="/terms">Terms & Policy</a>
+        </div>
+
+        <div class="copyright">
+            &copy; 2026 Wolf Gaming. All rights reserved.<br>
+            Digital services & Top-ups.
+        </div>
     </footer>
 
     <script>
