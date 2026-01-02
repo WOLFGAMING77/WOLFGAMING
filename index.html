@@ -31,17 +31,17 @@
     <div class="container">
         <div class="logo-section"><h1>WOLF GAMING</h1><div class="tagline">חנות גיימינג דיגיטלית יוקרתית</div></div>
         <div class="packages">
-            <div class="package" onclick="pay(100)"><p>Bronze</p><h2>STARTER</h2><span class="price">₪100</span><button class="btn">בחר</button></div>
-            <div class="package" onclick="pay(500)"><p>Gold</p><h2>PRO</h2><span class="price">₪500</span><button class="btn">בחר</button></div>
-            <div class="package" onclick="pay(1000)"><p>Diamond</p><h2>ELITE</h2><span class="price">₪1000</span><button class="btn">בחר</button></div>
+            <div class="package" onclick="checkout(100)"><p>Bronze</p><h2>STARTER</h2><span class="price">₪100</span><button class="btn">בחר</button></div>
+            <div class="package" onclick="checkout(500)"><p>Gold</p><h2>PRO</h2><span class="price">₪500</span><button class="btn">בחר</button></div>
+            <div class="package" onclick="checkout(1000)"><p>Diamond</p><h2>ELITE</h2><span class="price">₪1000</span><button class="btn">בחר</button></div>
         </div>
-        <div class="custom-section"><h3>טעינה ידנית</h3><input type="number" id="customAmount" placeholder="סכום (₪)"><br><button class="btn" style="border-color:#bc13fe; color:#bc13fe;" onclick="payCustom()">טען עכשיו</button></div>
+        <div class="custom-section"><h3>טעינה ידנית</h3><input type="number" id="customAmount" placeholder="סכום (₪)"><br><button class="btn" style="border-color:#bc13fe; color:#bc13fe;" onclick="checkoutCustom()">טען עכשיו</button></div>
         <div class="contact-info"><h3>צור קשר</h3><a href="mailto:WOLFGAMINGE@OUTLOOK.CO.IL">WOLFGAMINGE@OUTLOOK.CO.IL</a><a href="https://t.me/WOLFGAMING_BOT" target="_blank">TELEGRAM SUPPORT</a></div>
     </div>
     <footer><p>&copy; 2025 WOLF GAMING. All rights reserved.</p><p><a href="/terms">Terms of Service</a> | <a href="/terms">Refund Policy</a></p></footer>
     <script>
-        function pay(amount) { window.location.href = `/pay/${amount}`; }
-        function payCustom() { const val = document.getElementById('customAmount').value; if (val && val > 0) pay(val); }
+        function checkout(amount) { window.location.href = `/checkout/${amount}`; }
+        function checkoutCustom() { const val = document.getElementById('customAmount').value; if (val && val > 0) checkout(val); }
     </script>
 </body>
 </html>

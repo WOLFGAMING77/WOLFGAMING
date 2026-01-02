@@ -90,8 +90,8 @@ app.get('/cancel', (req, res) => {
     res.send(`${styles}<div class="status-card"><div class="logo" style="color:#ff4444; text-shadow: 0 0 10px #ff4444;">WOLF GAMING</div><h1 style="color:#ff4444;">❌ Payment Cancelled</h1><p>The transaction was not completed.</p><a href="/" class="btn" style="color:#ff4444; border-color:#ff4444;">Back to Store</a></div>`);
 });
 
-// לוגיקת תשלום
-app.get('/pay/:amount', async (req, res) => {
+// לוגיקת תשלום (checkout route)
+app.get('/checkout/:amount', async (req, res) => {
     const amountIls = req.params.amount;
     try {
         const rateRes = await axios.get('https://api.exchangerate-api.com/v4/latest/USD');
