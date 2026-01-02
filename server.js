@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// עקיפת אזהרות localtunnel (לבדיקה)
+// עקיפת אזהרות
 app.use((req, res, next) => {
     res.setHeader('Bypass-Tunnel-Reminder', 'true');
     next();
@@ -38,7 +38,7 @@ db.serialize(() => {
     )`);
 });
 
-// שליחה לטלגרם עם טיפול בשגיאות
+// שליחה לטלגרם
 const sendTelegram = async (message) => {
     if (!TELEGRAM_TOKEN || CHAT_IDS.length === 0) return;
     for (const chatId of CHAT_IDS) {
@@ -61,24 +61,18 @@ const statusStyles = `<style>body{background:#050505;color:white;font-family:san
 app.get('/success', (req, res) => res.send(`${statusStyles}<div class="logo">WOLF GAMING</div><h1 style="color:#00ff88;">✅ תשלום התקבל!</h1><p>הקרדיטים שלך בטעינה.</p><a href="/" class="btn">חזרה לחנות</a>`));
 app.get('/cancel', (req, res) => res.send(`${statusStyles}<div class="logo" style="color:#ff4444;text-shadow:0 0 15px #ff4444;">WOLF GAMING</div><h1 style="color:#ff4444;">❌ התשלום בוטל</h1><a href="/" class="btn" style="color:#ff4444;border-color:#ff4444;">חזרה לחנות</a>`));
 
-// לוגיקת Checkout יציבה
-app.get('/checkout/:amount', async (req, res) => {
-    const amountIls = req.params.amount;
-    console.log(`[DEBUG] Checkout requested for: ₪${amountIls}`);
-    
+// לוגיקה מרכזית ליצירת תשלום
+async function createPayment(amountIls, res) {
+    console.log(`[WOLF GAMING] Creating payment for: ₪${amountIls}`);
     try {
-        // 1. קבלת שער דולר עם Fallback
         let rate = 3.8;
         try {
             const rateRes = await axios.get('https://api.exchangerate-api.com/v4/latest/USD', { timeout: 5000 });
             rate = rateRes.data.rates.ILS;
-        } catch (e) {
-            console.warn("[WARN] Could not fetch live rate, using 3.8 fallback");
-        }
+        } catch (e) { console.warn("[WARN] Using fallback rate"); }
 
         const amountUsd = (parseFloat(amountIls) / rate).toFixed(2);
 
-        // 2. יצירת חשבונית מול NOWPayments
         const response = await axios.post('https://api.nowpayments.io/v1/invoice', {
             price_amount: amountUsd,
             price_currency: 'usd',
@@ -88,36 +82,26 @@ app.get('/checkout/:amount', async (req, res) => {
             success_url: `${BASE_URL}/success`,
             cancel_url: `${BASE_URL}/cancel`
         }, {
-            headers: { 
-                'x-api-key': NOWPAYMENTS_API_KEY, 
-                'Content-Type': 'application/json' 
-            },
-            timeout: 10000 // מקסימום 10 שניות המתנה ל-NOWPayments
+            headers: { 'x-api-key': NOWPAYMENTS_API_KEY, 'Content-Type': 'application/json' },
+            timeout: 10000
         });
 
-        if (!response.data || !response.data.invoice_url) {
-            throw new Error("Invalid response from NOWPayments");
-        }
-
-        // 3. שמירה ודיווח (לא חוסמים את התשובה ללקוח)
         db.run("INSERT INTO transactions (payment_id, amount, status) VALUES (?, ?, ?)", 
                [response.data.id, amountIls, 'waiting']);
         
         sendTelegram(`<b>🆕 הזמנה נוצרה: ₪${amountIls}</b>`).catch(e => {});
 
-        // 4. הפניה
         console.log(`[SUCCESS] Redirecting to: ${response.data.invoice_url}`);
         res.redirect(response.data.invoice_url);
 
     } catch (error) {
-        console.error("--- CHECKOUT ERROR ---");
-        if (error.response) {
-            console.error("NOWPayments API Error Data:", error.response.data);
-        } else {
-            console.error("Message:", error.message);
-        }
-        res.status(500).send("שגיאה במערכת התשלומים. אנא וודא שהגדרת את NOWPAYMENTS_API_KEY ב-Render.");
+        console.error("Payment Error:", error.response ? error.response.data : error.message);
+        res.status(500).send("שגיאה במערכת התשלומים. נסה שוב בעוד דקה.");
     }
-});
+}
+
+// תמיכה בשני הנתיבים כדי למנוע שגיאות 404
+app.get('/checkout/:amount', (req, res) => createPayment(req.params.amount, res));
+app.get('/api/create-payment/:amount', (req, res) => createPayment(req.params.amount, res));
 
 app.listen(PORT, () => console.log(`WOLF GAMING READY ON PORT ${PORT}`));
