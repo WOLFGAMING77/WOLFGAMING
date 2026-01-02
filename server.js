@@ -15,6 +15,7 @@ const BASE_URL = process.env.RENDER_EXTERNAL_URL || 'https://thirty-rooms-shop.l
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname))); // הגדרת תיקיית קבצים סטטיים
 
 // Header לעקיפת אזהרות טונל
 app.use((req, res, next) => {
@@ -30,9 +31,8 @@ const EMAIL_PORT = process.env.EMAIL_PORT || 1025;
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_IDS = [process.env.TELEGRAM_CHAT_ID_1, process.env.TELEGRAM_CHAT_ID_2].filter(Boolean);
 const NOWPAYMENTS_API_KEY = process.env.NOWPAYMENTS_API_KEY;
-const NOWPAYMENTS_IPN_SECRET = process.env.NOWPAYMENTS_IPN_SECRET;
 
-// מסד נתונים SQLite - כולל סנכרון עמודת order_id
+// מסד נתונים SQLite
 const db = new sqlite3.Database('./database.sqlite');
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS transactions (
@@ -71,6 +71,11 @@ const sendTelegram = async (message) => {
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'terms.html')));
 
+// הצגת דף ה-Checkout המעוצב
+app.get('/checkout/:amount', (req, res) => {
+    res.sendFile(path.join(__dirname, 'checkout.html'));
+});
+
 // דפי תגובה מעוצבים WOLF GAMING
 const styles = `
     <style>
@@ -90,8 +95,8 @@ app.get('/cancel', (req, res) => {
     res.send(`${styles}<div class="status-card"><div class="logo" style="color:#ff4444; text-shadow: 0 0 10px #ff4444;">WOLF GAMING</div><h1 style="color:#ff4444;">❌ Payment Cancelled</h1><p>The transaction was not completed.</p><a href="/" class="btn" style="color:#ff4444; border-color:#ff4444;">Back to Store</a></div>`);
 });
 
-// לוגיקת תשלום (checkout route)
-app.get('/checkout/:amount', async (req, res) => {
+// לוגיקת יצירת התשלום (פנימי)
+app.get('/api/create-payment/:amount', async (req, res) => {
     const amountIls = req.params.amount;
     try {
         const rateRes = await axios.get('https://api.exchangerate-api.com/v4/latest/USD');
