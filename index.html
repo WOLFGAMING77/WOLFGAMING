@@ -3,45 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WOLF GAMING - Premium Credits</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Assistant:wght@300;600&display=swap" rel="stylesheet">
+    <title>WOLF GAMING | Premium Digital Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --neon: #00f2ff; --neon-purple: #bc13fe; --bg: #050505; --card: #111; }
-        body { font-family: 'Assistant', sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-        .container { text-align: center; padding: 2rem; width: 100%; max-width: 900px; flex-grow: 1; }
-        .logo-section { margin-top: 40px; margin-bottom: 3rem; }
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; margin: 0; color: #fff; text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 40px var(--neon); letter-spacing: 5px; }
-        .tagline { font-size: 1.2rem; color: #aaa; letter-spacing: 2px; margin-top: 10px; }
-        .packages { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 40px; }
-        .package { background: var(--card); border: 1px solid #333; padding: 30px; border-radius: 20px; transition: 0.4s; cursor: pointer; }
-        .package:hover { transform: translateY(-10px); border-color: var(--neon); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
-        .package h2 { font-family: 'Orbitron', sans-serif; font-size: 2rem; color: var(--neon); }
-        .package .price { font-size: 2.5rem; font-weight: bold; margin: 20px 0; display: block; }
-        .custom-section { background: var(--card); border: 1px solid #333; padding: 30px; border-radius: 20px; max-width: 500px; margin: 0 auto 40px; }
-        input { background: #000; border: 1px solid #444; padding: 15px; border-radius: 10px; color: #fff; width: 80%; font-size: 1.2rem; text-align: center; margin-bottom: 20px; outline: none; }
-        .btn { background: none; border: 2px solid var(--neon); color: var(--neon); padding: 15px 40px; border-radius: 50px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.4s; font-family: 'Orbitron', sans-serif; }
-        .btn:hover { background: var(--neon); color: #000; box-shadow: 0 0 30px var(--neon); }
-        .contact-info { margin: 40px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; border: 1px solid #222; }
-        .contact-info a { color: var(--neon); text-decoration: none; margin: 0 15px; font-weight: bold; }
-        footer { padding: 30px; width: 100%; text-align: center; color: #555; }
-        footer a { color: #888; text-decoration: none; margin: 0 10px; }
+        :root {
+            --primary: #00f2ff;
+            --secondary: #bc13fe;
+            --bg: #050505;
+            --card-bg: #0a0a0a;
+            --text: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* Header & Hero */
+        header {
+            padding: 40px 20px;
+            text-align: center;
+            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: #888;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h2.section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            color: var(--text);
+            border-bottom: 2px solid var(--secondary);
+            display: inline-block;
+            padding-bottom: 10px;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        /* Luxury Card Styling */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid #1a1a1a;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.2);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: 0.5s;
+        }
+
+        .card:hover::before { left: 100%; }
+
+        .card i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+            color: var(--secondary);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin: 10px 0;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 15px 0;
+            display: block;
+        }
+
+        .btn {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        /* Why Choose Us Section */
+        .features {
+            background: #0a0a0a;
+            padding: 60px 20px;
+            border-radius: 20px;
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            text-align: center;
+        }
+
+        .feature-item img {
+            width: 60px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px var(--primary));
+        }
+
+        .feature-item h4 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .feature-item p {
+            color: #888;
+        }
+
+        /* Custom Load */
+        .custom-load {
+            max-width: 400px;
+            margin: 0 auto 60px;
+            text-align: center;
+            background: #0a0a0a;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px dashed var(--secondary);
+        }
+
+        input {
+            width: 80%;
+            padding: 12px;
+            background: #111;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            color: #555;
+            border-top: 1px solid #111;
+        }
+
+        a { color: var(--primary); text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .logo { font-size: 2.5rem; }
+        }
     </style>
 </head>
 <body>
+
+    <header>
+        <div class="logo orbitron">WOLF GAMING</div>
+        <div class="tagline">Premium Digital Gaming Services</div>
+    </header>
+
     <div class="container">
-        <div class="logo-section"><h1>WOLF GAMING</h1><div class="tagline">חנות גיימינג דיגיטלית יוקרתית</div></div>
-        <div class="packages">
-            <div class="package" onclick="checkout(100)"><p>Bronze</p><h2>STARTER</h2><span class="price">₪100</span><button class="btn">בחר</button></div>
-            <div class="package" onclick="checkout(500)"><p>Gold</p><h2>PRO</h2><span class="price">₪500</span><button class="btn">בחר</button></div>
-            <div class="package" onclick="checkout(1000)"><p>Diamond</p><h2>ELITE</h2><span class="price">₪1000</span><button class="btn">בחר</button></div>
+        
+        <!-- Game Currency Section -->
+        <h2 class="section-title orbitron">Game Currency</h2>
+        <div class="grid">
+            <div class="card">
+                <div style="font-size: 40px; margin-bottom: 15px;">🪙</div>
+                <h3>1,000 Points</h3>
+                <span class="price">₪100</span>
+                <button class="btn" onclick="checkout(100)">Buy Now</button>
+            </div>
+            <div class="card">
+                <div style="font-size: 40px; margin-bottom: 15px;">💰</div>
+                <h3>5,000 Points</h3>
+                <span class="price">₪450</span>
+                <button class="btn" onclick="checkout(450)">Buy Now</button>
+            </div>
+            <div class="card">
+                <div style="font-size: 40px; margin-bottom: 15px;">💎</div>
+                <h3>10,000 Points</h3>
+                <span class="price">₪850</span>
+                <button class="btn" onclick="checkout(850)">Buy Now</button>
+            </div>
+            <div class="card">
+                <div style="font-size: 40px; margin-bottom: 15px;">👑</div>
+                <h3>50,000 Points</h3>
+                <span class="price">₪3500</span>
+                <button class="btn" onclick="checkout(3500)">Buy Now</button>
+            </div>
         </div>
-        <div class="custom-section"><h3>טעינה ידנית</h3><input type="number" id="customAmount" placeholder="סכום (₪)"><br><button class="btn" style="border-color:#bc13fe; color:#bc13fe;" onclick="checkoutCustom()">טען עכשיו</button></div>
-        <div class="contact-info"><h3>צור קשר</h3><a href="mailto:WOLFGAMINGE@OUTLOOK.CO.IL">WOLFGAMINGE@OUTLOOK.CO.IL</a><a href="https://t.me/WOLFGAMING_BOT" target="_blank">TELEGRAM SUPPORT</a></div>
+
+        <!-- Custom Amount -->
+        <div class="custom-load">
+            <h3 class="orbitron">Custom Recharge</h3>
+            <input type="number" id="customAmount" placeholder="Enter Amount (₪)">
+            <button class="btn" style="border-color: var(--secondary); color: var(--secondary);" onclick="checkoutCustom()">Load Now</button>
+        </div>
+
+        <!-- Gaming Services Section -->
+        <h2 class="section-title orbitron">Gaming Services</h2>
+        <div class="grid">
+            <div class="card">
+                <div style="font-size: 40px; margin-bottom: 15px;">⚔️</div>
+                <h3>Account Leveling</h3>
+                <span class="price">₪250</span>
+                <button class="btn" onclick="checkout(250)">Order Now</button>
+            </div>
+            <div class="card">
+                <div style="font-size: 40px; margin-bottom: 15px;">📈</div>
+                <h3>Rank Boost</h3>
+                <span class="price">₪180</span>
+                <button class="btn" onclick="checkout(180)">Order Now</button>
+            </div>
+            <div class="card">
+                <div style="font-size: 40px; margin-bottom: 15px;">🛠️</div>
+                <h3>Technical Patch</h3>
+                <span class="price">₪120</span>
+                <button class="btn" onclick="checkout(120)">Order Now</button>
+            </div>
+        </div>
+
+        <!-- Why Choose Us -->
+        <h2 class="section-title orbitron">Why Choose Us</h2>
+        <div class="features">
+            <div class="feature-item">
+                <div style="font-size: 50px;">⚡</div>
+                <h4>Instant Delivery</h4>
+                <p>Digital products are delivered within minutes of verification.</p>
+            </div>
+            <div class="feature-item">
+                <div style="font-size: 50px;">🛡️</div>
+                <h4>Secure Payment</h4>
+                <p>Advanced encryption ensures your transaction is 100% safe.</p>
+            </div>
+            <div class="feature-item">
+                <div style="font-size: 50px;">🎧</div>
+                <h4>24/7 Agent Support</h4>
+                <p>Our dedicated team is always here to assist you.</p>
+            </div>
+        </div>
+
     </div>
-    <footer><p>&copy; 2025 WOLF GAMING. All rights reserved.</p><p><a href="/terms">Terms of Service</a> | <a href="/terms">Refund Policy</a></p></footer>
+
+    <footer>
+        <p>&copy; 2025 WOLF GAMING. All rights reserved.</p>
+        <p>
+            <a href="/terms">Terms of Service</a> | 
+            <a href="/terms">Refund Policy</a> | 
+            <a href="mailto:WOLFGAMINGE@OUTLOOK.CO.IL">Contact Support</a>
+        </p>
+    </footer>
+
     <script>
-        function checkout(amount) { window.location.href = `/checkout/${amount}`; }
-        function checkoutCustom() { const val = document.getElementById('customAmount').value; if (val && val > 0) checkout(val); }
+        function checkout(amount) {
+            window.location.href = `/checkout/${amount}`;
+        }
+
+        function checkoutCustom() {
+            const val = document.getElementById('customAmount').value;
+            if (val && val > 0) checkout(val);
+        }
     </script>
 </body>
 </html>
