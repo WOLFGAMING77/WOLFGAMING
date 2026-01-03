@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WOLF GAMING | Support Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --secondary: #bc13fe;
+            --bg: #050505;
+            --card-bg: #0a0a0a;
+            --text: #ffffff;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0;
+            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        h2 { color: var(--primary); margin-bottom: 30px; text-align: center; }
+
+        /* Contact Cards */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        .contact-card {
+            background: var(--card-bg);
+            border: 1px solid #1a1a1a;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            color: white;
+        }
+
+        .contact-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.1);
+        }
+
+        .contact-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+            color: var(--secondary);
+        }
+
+        /* Support Form */
+        .support-form {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid #1a1a1a;
+            margin-bottom: 60px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        label { display: block; margin-bottom: 8px; color: #888; font-size: 0.9rem; }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #050505;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            margin-bottom: 60px;
+        }
+
+        .faq-item {
+            background: #0d0d0d;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-right: 4px solid var(--secondary);
+        }
+
+        .faq-item h4 { color: var(--primary); margin-bottom: 10px; }
+        .faq-item p { color: #aaa; }
+
+        /* Refund Section */
+        .refund-policy {
+            background: linear-gradient(145deg, #111, #050505);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px dashed #333;
+            text-align: center;
+        }
+
+        .refund-policy h3 { color: var(--secondary); margin-bottom: 15px; }
+
+        footer { text-align: center; padding: 40px; color: #555; border-top: 1px solid #111; }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .support-form { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo orbitron">WOLF SUPPORT</div>
+        <p style="color: #888; letter-spacing: 2px;">WE ARE HERE TO HELP</p>
+    </header>
+
+    <div class="container">
+        
+        <div class="contact-grid">
+            <a href="https://t.me/id8562794984" class="contact-card" target="_blank">
+                <div style="font-size: 40px;">✈️</div>
+                <h3 class="orbitron">Telegram Support</h3>
+                <p>Chat with an agent 24/7</p>
+            </a>
+            <a href="mailto:WOLFGAMING@OUTLOOK.CO.IL" class="contact-card">
+                <div style="font-size: 40px;">📧</div>
+                <h3 class="orbitron">Email Us</h3>
+                <p>WOLFGAMING@OUTLOOK.CO.IL</p>
+            </a>
+        </div>
+
+        <div class="support-form">
+            <h2 class="orbitron">Open a Ticket</h2>
+            <form action="/api/support/send" method="POST">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Order ID (Optional)</label>
+                    <input type="text" name="orderId" placeholder="WOLF_XXXXXXXXX">
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea name="message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn">SEND REQUEST</button>
+            </form>
+        </div>
+
+        <div class="faq-section">
+            <h2 class="orbitron">FAQ</h2>
+            <div class="faq-item">
+                <h4>How long does delivery take?</h4>
+                <p>Digital items are usually delivered within 5-15 minutes after payment verification.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Is it safe?</h4>
+                <p>Yes, we use secure encrypted protocols and trusted payment gateways to ensure your data is 100% safe.</p>
+            </div>
+            <div class="faq-item">
+                <h4>What if I entered the wrong ID?</h4>
+                <p>Contact support immediately via Telegram with your Order ID and the correct information.</p>
+            </div>
+        </div>
+
+        <div class="refund-policy">
+            <h3 class="orbitron">Refund Policy</h3>
+            <p>Digital items are usually delivered within 5-15 minutes. If a delivery fails or cannot be fulfilled, a full refund will be issued to the original payment method within 24 hours.</p>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Wolf Gaming Support Center. All rights reserved.</p>
+        <a href="/" style="color: var(--primary); text-decoration: none; margin-top: 10px; display: inline-block;">Back to Store</a>
+    </footer>
+
+</body>
+</html>
+

@@ -104,6 +104,34 @@ const commonStyles = `
 // דף הבית ותנאים
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'terms.html')));
+app.get('/support', (req, res) => res.sendFile(path.join(__dirname, 'support.html')));
+
+app.post('/api/support/send', async (req, res) => {
+    const { name, email, orderId, message } = req.body;
+    
+    const mailOptions = {
+        from: `"Support Ticket" <${process.env.EMAIL_USER}>`,
+        to: 'WOLFGAMING@OUTLOOK.CO.IL',
+        replyTo: email,
+        subject: `New Support Ticket from ${name}`,
+        html: `
+            <h2>New Support Request</h2>
+            <p><b>Name:</b> ${name}</p>
+            <p><b>Email:</b> ${email}</p>
+            <p><b>Order ID:</b> ${orderId || 'N/A'}</p>
+            <hr>
+            <p><b>Message:</b></p>
+            <p>${message}</p>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.send(`${commonStyles}<div class="container"><div class="logo">SENT!</div><p>Your request has been sent. We will contact you shortly.</p><a href="/support" class="btn">BACK</a></div>`);
+    } catch (e) {
+        res.status(500).send("Error sending message.");
+    }
+});
 
 // 1. דף Checkout עם הטופס החדש
 app.get('/checkout/:amount', (req, res) => {
