@@ -335,12 +335,18 @@
                             <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
                         </select>
                         <button class="logs-btn" onclick="showLogs('${encodeURIComponent(order.audit_logs)}')">Logs</button>
-                        ${order.status !== 'completed' ? `
-                            <button class="btn" style="padding: 5px 10px; font-size: 0.7rem; margin-top: 5px; border-color: var(--success); color: var(--success);" 
-                                onclick="markAsDelivered('${order.order_id}')">
-                                Mark Delivered
+                        <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                            ${order.status !== 'completed' ? `
+                                <button class="btn" style="padding: 5px 10px; font-size: 0.7rem; width: auto; border-color: var(--success); color: var(--success);" 
+                                    onclick="markAsDelivered('${order.order_id}')">
+                                    Mark Delivered
+                                </button>
+                            ` : ''}
+                            <button class="btn" style="padding: 5px 10px; font-size: 0.7rem; width: auto; border-color: #fff; color: #fff;" 
+                                onclick="downloadProof('${order.order_id}')">
+                                Download Official Proof
                             </button>
-                        ` : ''}
+                        </div>
                     </td>
                 `;
                 table.appendChild(tr);
@@ -389,6 +395,10 @@
                 btn.disabled = false;
                 btn.innerText = 'Mark Delivered';
             }
+        }
+
+        function downloadProof(orderId) {
+            window.open(`/api/admin/proof/${orderId}?token=${currentPass}`, '_blank');
         }
 
         async function updateDelivery(orderId) {
