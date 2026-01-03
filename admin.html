@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>WOLF GAMING | Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --secondary: #bc13fe;
+            --bg: #050505;
+            --card-bg: #0a0a0a;
+            --text: #ffffff;
+            --success: #00ff88;
+            --pending: #ffcc00;
+            --processing: #0099ff;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Login Page */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+        }
+
+        .login-box {
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            background: #111;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        /* Dashboard */
+        #admin-dashboard {
+            display: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 2rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: #111;
+            color: var(--primary);
+            text-align: right;
+            padding: 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        tr:hover {
+            background: #0f0f0f;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-waiting, .status-pending { background: #333; color: #aaa; }
+        .status-processing { background: var(--processing); color: white; }
+        .status-completed { background: var(--success); color: black; }
+
+        .actions select {
+            background: #111;
+            color: white;
+            border: 1px solid #333;
+            padding: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .tx-input {
+            width: 150px;
+            padding: 5px;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .upload-btn {
+            font-size: 0.7rem;
+            padding: 5px 10px;
+            margin-right: 5px;
+        }
+
+        .logs-btn {
+            background: transparent;
+            border: 1px solid #555;
+            color: #888;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid var(--secondary);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px; left: 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #888;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="login-screen">
+            <div class="login-box">
+                <div class="logo orbitron" style="margin-bottom: 20px;">WOLF ADMIN</div>
+                <input type="password" id="adminPass" placeholder="Enter Password">
+                <button class="btn orbitron" onclick="login()">UNSEAL ACCESS</button>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="admin-dashboard">
+            <div class="header">
+                <div class="logo orbitron">WOLF CONTROL</div>
+                <button class="btn orbitron" style="width: auto; padding: 10px 20px;" onclick="logout()">LOGOUT</button>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>TXID / Proof</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table">
+                        <!-- Orders will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Modal -->
+    <div id="logs-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h3 class="orbitron" style="color: var(--secondary); margin-bottom: 20px;">AUDIT LOGS</h3>
+            <div id="logs-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentPass = localStorage.getItem('wolf_admin_pass');
+
+        if (currentPass) {
+            login(currentPass);
+        }
+
+        async function login(pass) {
+            const password = pass || document.getElementById('adminPass').value;
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (res.ok) {
+                    currentPass = password;
+                    localStorage.setItem('wolf_admin_pass', password);
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('admin-dashboard').style.display = 'block';
+                    loadOrders();
+                } else {
+                    alert('Access Denied: Invalid Code');
+                }
+            } catch(e) {
+                alert('Connection Error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('wolf_admin_pass');
+            location.reload();
+        }
+
+        async function loadOrders() {
+            const res = await fetch('/api/admin/orders', {
+                headers: { 'Authorization': currentPass }
+            });
+            const orders = await res.json();
+            const table = document.getElementById('orders-table');
+            table.innerHTML = '';
+
+            orders.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color:var(--primary); font-weight:bold;">${order.order_id}</td>
+                    <td>
+                        <div>${order.customer_name}</div>
+                        <div style="font-size:0.7rem; color:#666;">${order.customer_email}</div>
+                    </td>
+                    <td>${order.product_name || 'N/A'}</td>
+                    <td>₪${order.amount}</td>
+                    <td style="font-size:0.8rem; color:#888;">${new Date(order.created_at).toLocaleString('he-IL')}</td>
+                    <td>
+                        <span class="status-badge status-${order.status}">${order.status}</span>
+                    </td>
+                    <td>
+                        <input type="text" class="tx-input" id="tx-${order.order_id}" value="${order.txid || ''}" placeholder="TXID">
+                        <input type="file" id="file-${order.order_id}" style="display:none;" onchange="updateDelivery('${order.order_id}')">
+                        <button class="btn upload-btn" onclick="document.getElementById('file-${order.order_id}').click()">
+                            ${order.delivery_image ? '✅ Proof' : '📁 Upload'}
+                        </button>
+                        ${order.delivery_image ? `<a href="${order.delivery_image}" target="_blank" style="font-size:0.7rem; color:var(--primary);">View</a>` : ''}
+                    </td>
+                    <td class="actions">
+                        <select onchange="updateStatus('${order.order_id}', this.value)">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                        </select>
+                        <button class="logs-btn" onclick="showLogs('${encodeURIComponent(order.audit_logs)}')">Logs</button>
+                        ${order.status !== 'completed' ? `
+                            <button class="btn" style="padding: 5px 10px; font-size: 0.7rem; margin-top: 5px; border-color: var(--success); color: var(--success);" 
+                                onclick="markAsDelivered('${order.order_id}')">
+                                Mark Delivered
+                            </button>
+                        ` : ''}
+                    </td>
+                `;
+                table.appendChild(tr);
+            });
+        }
+
+        async function updateStatus(orderId, status) {
+            await fetch('/api/admin/update-status', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': currentPass
+                },
+                body: JSON.stringify({ orderId, status })
+            });
+            loadOrders();
+        }
+
+        async function markAsDelivered(orderId) {
+            if (!confirm('Are you sure you want to mark this order as DELIVERED and send the confirmation email?')) return;
+            
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerText = 'Sending...';
+
+            try {
+                const res = await fetch('/api/admin/mark-delivered', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': currentPass
+                    },
+                    body: JSON.stringify({ orderId })
+                });
+
+                if (res.ok) {
+                    alert('Order marked as delivered and email sent!');
+                    loadOrders();
+                } else {
+                    alert('Error marking as delivered.');
+                    btn.disabled = false;
+                    btn.innerText = 'Mark Delivered';
+                }
+            } catch(e) {
+                alert('Connection error');
+                btn.disabled = false;
+                btn.innerText = 'Mark Delivered';
+            }
+        }
+
+        async function updateDelivery(orderId) {
+            const txid = document.getElementById(`tx-${orderId}`).value;
+            const fileInput = document.getElementById(`file-${orderId}`);
+            const formData = new FormData();
+            formData.append('orderId', orderId);
+            formData.append('txid', txid);
+            if (fileInput.files[0]) {
+                formData.append('image', fileInput.files[0]);
+            }
+
+            await fetch('/api/admin/update-delivery', {
+                method: 'POST',
+                headers: { 'Authorization': currentPass },
+                body: formData
+            });
+            loadOrders();
+        }
+
+        function showLogs(logsJson) {
+            const logs = JSON.parse(decodeURIComponent(logsJson) || '[]');
+            const list = document.getElementById('logs-list');
+            list.innerHTML = logs.map(l => `<div class="log-entry">${l}</div>`).join('') || 'No logs found.';
+            document.getElementById('logs-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('logs-modal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('logs-modal')) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
+

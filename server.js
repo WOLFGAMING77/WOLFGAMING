@@ -4,14 +4,30 @@ const axios = require('axios');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const cors = require('cors');
+const multer = require('multer');
+const fs = require('fs');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'wolf2026';
+
+// יצירת תיקיית העלאות אם לא קיימת
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/'),
+    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
+const upload = multer({ storage: storage });
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname)));
 
 app.use((req, res, next) => {
@@ -23,6 +39,17 @@ const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_IDS = [process.env.TELEGRAM_CHAT_ID_1, process.env.TELEGRAM_CHAT_ID_2].filter(Boolean);
 const NOWPAYMENTS_API_KEY = process.env.NOWPAYMENTS_API_KEY;
 
+const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || '127.0.0.1',
+    port: process.env.EMAIL_PORT || 1025,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: { rejectUnauthorized: false }
+});
+
 const db = new sqlite3.Database('./database.sqlite');
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS transactions (
@@ -32,9 +59,18 @@ db.serialize(() => {
         amount TEXT,
         customer_name TEXT,
         customer_email TEXT,
+        product_name TEXT,
         status TEXT,
+        txid TEXT,
+        delivery_image TEXT,
+        audit_logs TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    // הוספת עמודות אם הטבלה כבר קיימת
+    ['product_name', 'txid', 'delivery_image', 'audit_logs'].forEach(col => {
+        db.run(`ALTER TABLE transactions ADD COLUMN ${col} TEXT`, () => {});
+    });
 });
 
 const sendTelegram = async (message) => {
@@ -72,6 +108,7 @@ app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'terms.html'))
 // 1. דף Checkout עם הטופס החדש
 app.get('/checkout/:amount', (req, res) => {
     const amount = parseFloat(req.params.amount);
+    const productName = req.query.p || 'Gaming Product';
     const fee = (amount * 0.01).toFixed(2);
     const total = (amount + parseFloat(fee)).toFixed(2);
 
@@ -80,8 +117,10 @@ app.get('/checkout/:amount', (req, res) => {
         <div class="container">
             <div class="logo">WOLF GAMING</div>
             <h2>Checkout</h2>
+            <p style="color:#888;">Product: <b style="color:#00f2ff;">${productName}</b></p>
             <form action="/api/process-payment" method="POST">
                 <input type="hidden" name="baseAmount" value="${amount}">
+                <input type="hidden" name="productName" value="${productName}">
                 <input type="text" name="name" placeholder="Full Name" required>
                 <input type="email" name="email" placeholder="Email Address" required>
                 <div class="note">Your digital code will be sent to this email.</div>
@@ -101,7 +140,7 @@ app.get('/checkout/:amount', (req, res) => {
 
 // 2. עיבוד התשלום ויצירת חשבונית ב-NOWPayments
 app.post('/api/process-payment', async (req, res) => {
-    const { baseAmount, name, email } = req.body;
+    const { baseAmount, name, email, productName } = req.body;
     const totalIls = (parseFloat(baseAmount) * 1.01).toFixed(2);
     const orderId = 'WOLF_' + Date.now();
 
@@ -119,7 +158,7 @@ app.post('/api/process-payment', async (req, res) => {
             price_currency: 'usd',
             pay_currency: 'usdttrc20',
             order_id: orderId,
-            order_description: `Gaming Credits for ${name}`,
+            order_description: `${productName} for ${name}`,
             success_url: `${BASE_URL}/receipt?orderId=${orderId}&amount=${totalIls}`,
             cancel_url: `${BASE_URL}/cancel`
         }, {
@@ -127,10 +166,11 @@ app.post('/api/process-payment', async (req, res) => {
             timeout: 10000
         });
 
-        db.run("INSERT INTO transactions (order_id, payment_id, amount, customer_name, customer_email, status) VALUES (?, ?, ?, ?, ?, ?)", 
-               [orderId, response.data.id, totalIls, name, email, 'waiting']);
+        const initialLog = JSON.stringify([`${new Date().toISOString()} - Order Created`]);
+        db.run("INSERT INTO transactions (order_id, payment_id, amount, customer_name, customer_email, product_name, status, audit_logs) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
+               [orderId, response.data.id, totalIls, name, email, productName, 'pending', initialLog]);
         
-        sendTelegram(`<b>🆕 הזמנה חדשה: ${orderId}</b>\nלקוח: ${name}\nסכום: ₪${totalIls}`).catch(e => {});
+        sendTelegram(`<b>🆕 הזמנה חדשה: ${orderId}</b>\nמוצר: ${productName}\nלקוח: ${name}\nסכום: ₪${totalIls}`).catch(e => {});
 
         res.redirect(response.data.invoice_url);
     } catch (error) {
@@ -162,5 +202,154 @@ app.get('/receipt', (req, res) => {
 });
 
 app.get('/cancel', (req, res) => res.send(`${commonStyles}<div class="container"><div class="logo" style="color:#ff4444;">WOLF GAMING</div><h1>❌ Payment Cancelled</h1><a href="/" class="btn" style="color:#ff4444; border-color:#ff4444;">BACK TO HOME</a></div>`));
+
+// --- ADMIN DASHBOARD ---
+
+app.get('/admin-wolf-gate', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.post('/api/admin/login', (req, res) => {
+    if (req.body.password === ADMIN_PASS) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ success: false });
+    }
+});
+
+app.get('/api/admin/orders', (req, res) => {
+    const auth = req.headers.authorization;
+    if (auth !== ADMIN_PASS) return res.status(401).send();
+
+    db.all("SELECT * FROM transactions ORDER BY created_at DESC", (err, rows) => {
+        if (err) return res.status(500).send(err.message);
+        res.json(rows);
+    });
+});
+
+app.post('/api/admin/update-status', (req, res) => {
+    const auth = req.headers.authorization;
+    if (auth !== ADMIN_PASS) return res.status(401).send();
+
+    const { orderId, status } = req.body;
+    const now = new Date().toLocaleTimeString('he-IL', { hour12: false });
+    const logEntry = `${now} - Status changed to ${status}`;
+
+    db.get("SELECT audit_logs FROM transactions WHERE order_id = ?", [orderId], (err, row) => {
+        let logs = [];
+        try {
+            logs = row.audit_logs ? JSON.parse(row.audit_logs) : [];
+        } catch(e) {}
+        logs.push(logEntry);
+
+        db.run("UPDATE transactions SET status = ?, audit_logs = ? WHERE order_id = ?", 
+               [status, JSON.stringify(logs), orderId], (err) => {
+            if (err) return res.status(500).send(err.message);
+            res.json({ success: true });
+        });
+    });
+});
+
+app.post('/api/admin/update-delivery', upload.single('image'), (req, res) => {
+    const auth = req.headers.authorization;
+    if (auth !== ADMIN_PASS) return res.status(401).send();
+
+    const { orderId, txid } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    let query = "UPDATE transactions SET txid = ?" + (imageUrl ? ", delivery_image = ?" : "") + " WHERE order_id = ?";
+    let params = imageUrl ? [txid, imageUrl, orderId] : [txid, orderId];
+
+    db.run(query, params, (err) => {
+        if (err) return res.status(500).send(err.message);
+        res.json({ success: true, imageUrl });
+    });
+});
+
+app.post('/api/admin/mark-delivered', async (req, res) => {
+    const auth = req.headers.authorization;
+    if (auth !== ADMIN_PASS) return res.status(401).send();
+
+    const { orderId } = req.body;
+    const internalLogicId = 'DLV-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const now = new Date().toISOString();
+
+    db.get("SELECT * FROM transactions WHERE order_id = ?", [orderId], async (err, order) => {
+        if (err || !order) return res.status(404).send("Order not found");
+
+        const logEntry = `${new Date().toLocaleTimeString('he-IL', { hour12: false })} - Marked as Delivered (${internalLogicId})`;
+        let logs = [];
+        try { logs = JSON.parse(order.audit_logs || '[]'); } catch(e) {}
+        logs.push(logEntry);
+
+        // Send Email
+        const mailOptions = {
+            from: `"WOLF GAMING" <${process.env.EMAIL_USER}>`,
+            to: order.customer_email,
+            subject: `✅ Order Delivered: ${order.product_name}`,
+            html: `
+                <div style="background:#050505; color:white; padding:40px; font-family:sans-serif; border:1px solid #00f2ff; border-radius:15px;">
+                    <h1 style="color:#00f2ff; text-align:center;">WOLF GAMING</h1>
+                    <h2 style="text-align:center;">Delivery Confirmation</h2>
+                    <p>Hello <b>${order.customer_name}</b>,</p>
+                    <p>Your order for <b>${order.product_name}</b> has been successfully processed and added to your Account ID.</p>
+                    <div style="background:#111; padding:20px; border-radius:10px; margin:20px 0; border-left:4px solid #bc13fe;">
+                        <p style="margin:5px 0;"><b>Order #:</b> ${order.order_id}</p>
+                        <p style="margin:5px 0;"><b>Internal Logic ID:</b> ${internalLogicId}</p>
+                        <p style="margin:5px 0;"><b>Status:</b> DELIVERED</p>
+                    </div>
+                    <p style="color:#888; font-size:0.9rem;">Thank you for choosing WOLF GAMING. If you have any questions, contact our support.</p>
+                </div>
+            `
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+            db.run("UPDATE transactions SET status = 'completed', audit_logs = ? WHERE order_id = ?", 
+                   [JSON.stringify(logs), orderId], (err) => {
+                if (err) return res.status(500).send(err.message);
+                res.json({ success: true, internalId: internalLogicId });
+            });
+        } catch (mailError) {
+            console.error('Email Error:', mailError);
+            res.status(500).send("Order updated but email failed.");
+        }
+    });
+});
+
+app.get('/delivery-logs-wolf', (req, res) => {
+    db.all("SELECT order_id, customer_email, created_at, status FROM transactions WHERE status = 'completed' ORDER BY created_at DESC", (err, rows) => {
+        if (err) return res.status(500).send(err.message);
+        
+        let html = `
+            ${commonStyles}
+            <div class="container" style="max-width:900px;">
+                <div class="logo">DELIVERY LOGS</div>
+                <table style="width:100%; border-collapse:collapse; margin-top:20px; color:white; font-family:sans-serif;">
+                    <thead>
+                        <tr style="background:#111; color:#00f2ff; text-align:left;">
+                            <th style="padding:15px;">Order #</th>
+                            <th style="padding:15px;">Customer Email</th>
+                            <th style="padding:15px;">Delivery Time</th>
+                            <th style="padding:15px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.map(r => `
+                            <tr style="border-bottom:1px solid #222;">
+                                <td style="padding:12px;">${r.order_id}</td>
+                                <td style="padding:12px;">${r.customer_email}</td>
+                                <td style="padding:12px;">${new Date(r.created_at).toLocaleString('he-IL')}</td>
+                                <td style="padding:12px;"><span style="color:#00ff88; font-weight:bold;">SUCCESS</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <a href="/" class="btn" style="margin-top:30px;">BACK TO STORE</a>
+            </div>
+        `;
+        res.send(html);
+    });
+});
 
 app.listen(PORT, () => console.log(`WOLF GAMING READY ON PORT ${PORT}`));

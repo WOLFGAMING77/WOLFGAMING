@@ -505,25 +505,25 @@
                 <div style="font-size: 30px; margin-bottom: 10px;">🪙</div>
                 <h3>1,000 Points</h3>
                 <span class="price">₪100</span>
-                <button class="btn" onclick="checkout(100)">Buy Now</button>
+                <button class="btn" onclick="checkout(100, '1,000 Points')">Buy Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">💰</div>
                 <h3>5,000 Points</h3>
                 <span class="price">₪450</span>
-                <button class="btn" onclick="checkout(450)">Buy Now</button>
+                <button class="btn" onclick="checkout(450, '5,000 Points')">Buy Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">💎</div>
                 <h3>10,000 Points</h3>
                 <span class="price">₪850</span>
-                <button class="btn" onclick="checkout(850)">Buy Now</button>
+                <button class="btn" onclick="checkout(850, '10,000 Points')">Buy Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">👑</div>
                 <h3>50,000 Points</h3>
                 <span class="price">₪3500</span>
-                <button class="btn" onclick="checkout(3500)">Buy Now</button>
+                <button class="btn" onclick="checkout(3500, '50,000 Points')">Buy Now</button>
             </div>
         </div>
 
@@ -544,25 +544,25 @@
                 <div style="font-size: 30px; margin-bottom: 10px;">⚔️</div>
                 <h3>Account Leveling</h3>
                 <span class="price">₪250</span>
-                <button class="btn" onclick="checkout(250)">Order Now</button>
+                <button class="btn" onclick="checkout(250, 'Account Leveling')">Order Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">📈</div>
                 <h3>Rank Boost</h3>
                 <span class="price">₪180</span>
-                <button class="btn" onclick="checkout(180)">Order Now</button>
+                <button class="btn" onclick="checkout(180, 'Rank Boost')">Order Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">🛠️</div>
                 <h3>Technical Patch</h3>
                 <span class="price">₪120</span>
-                <button class="btn" onclick="checkout(120)">Order Now</button>
+                <button class="btn" onclick="checkout(120, 'Technical Patch')">Order Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">🛡️</div>
                 <h3>Security Audit</h3>
                 <span class="price">₪300</span>
-                <button class="btn" onclick="checkout(300)">Order Now</button>
+                <button class="btn" onclick="checkout(300, 'Security Audit')">Order Now</button>
             </div>
         </div>
 
@@ -615,13 +615,13 @@
     </footer>
 
     <script>
-        function checkout(amount) {
-            window.location.href = `/checkout/${amount}`;
+        function checkout(amount, product = 'Custom Recharge') {
+            window.location.href = `/checkout/${amount}?p=${encodeURIComponent(product)}`;
         }
 
         function checkoutCustom() {
             const val = document.getElementById('customAmount').value;
-            if (val && val > 0) checkout(val);
+            if (val && val > 0) checkout(val, 'Custom Recharge');
         }
     </script>
 </body>
