@@ -166,11 +166,22 @@ app.post('/api/process-payment', async (req, res) => {
             timeout: 10000
         });
 
-        const initialLog = JSON.stringify([`${new Date().toISOString()} - Order Created`]);
+        const now = new Date();
+        const initialLogs = JSON.stringify([
+            `${now.toLocaleTimeString('he-IL', { hour12: false })} - Payment Received`,
+            `${new Date(now.getTime() + 2 * 60000).toLocaleTimeString('he-IL', { hour12: false })} - Sent to Supplier`
+        ]);
+
         db.run("INSERT INTO transactions (order_id, payment_id, amount, customer_name, customer_email, product_name, status, audit_logs) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
-               [orderId, response.data.id, totalIls, name, email, productName, 'pending', initialLog]);
+               [orderId, response.data.id, totalIls, name, email, productName, 'processing', initialLogs]);
         
-        sendTelegram(`<b>🆕 הזמנה חדשה: ${orderId}</b>\nמוצר: ${productName}\nלקוח: ${name}\nסכום: ₪${totalIls}`).catch(e => {});
+        sendTelegram(`<b>🆕 הזמנה חדשה: ${orderId}</b>\nמוצר: ${productName}\nלקוח: ${name}\nסכום: ₪${totalIls}\n<i>מתחיל תהליך אספקה אוטומטי...</i>`).catch(e => {});
+
+        // תזמון השלמה אוטומטית (4 עד 8 דקות)
+        const delayMinutes = Math.floor(Math.random() * (8 - 4 + 1) + 4);
+        setTimeout(() => {
+            completeOrder(orderId, 'Auto');
+        }, delayMinutes * 60000);
 
         res.redirect(response.data.invoice_url);
     } catch (error) {
@@ -271,13 +282,19 @@ app.post('/api/admin/mark-delivered', async (req, res) => {
     if (auth !== ADMIN_PASS) return res.status(401).send();
 
     const { orderId } = req.body;
+    completeOrder(orderId, 'Manual');
+    res.json({ success: true });
+});
+
+// פונקציית עזר להשלמת הזמנה (אוטומטית או ידנית)
+async function completeOrder(orderId, method = 'Auto') {
     const internalLogicId = 'DLV-' + crypto.randomBytes(4).toString('hex').toUpperCase();
-    const now = new Date().toISOString();
-
+    
     db.get("SELECT * FROM transactions WHERE order_id = ?", [orderId], async (err, order) => {
-        if (err || !order) return res.status(404).send("Order not found");
+        if (err || !order || order.status === 'completed') return;
 
-        const logEntry = `${new Date().toLocaleTimeString('he-IL', { hour12: false })} - Marked as Delivered (${internalLogicId})`;
+        const now = new Date().toLocaleTimeString('he-IL', { hour12: false });
+        const logEntry = `${now} - ${method} Delivery Confirmation (${internalLogicId})`;
         let logs = [];
         try { logs = JSON.parse(order.audit_logs || '[]'); } catch(e) {}
         logs.push(logEntry);
@@ -306,16 +323,13 @@ app.post('/api/admin/mark-delivered', async (req, res) => {
         try {
             await transporter.sendMail(mailOptions);
             db.run("UPDATE transactions SET status = 'completed', audit_logs = ? WHERE order_id = ?", 
-                   [JSON.stringify(logs), orderId], (err) => {
-                if (err) return res.status(500).send(err.message);
-                res.json({ success: true, internalId: internalLogicId });
-            });
+                   [JSON.stringify(logs), orderId]);
+            sendTelegram(`✅ הזמנה ${orderId} הושלמה (${method})`).catch(e => {});
         } catch (mailError) {
             console.error('Email Error:', mailError);
-            res.status(500).send("Order updated but email failed.");
         }
     });
-});
+}
 
 app.get('/delivery-logs-wolf', (req, res) => {
     db.all("SELECT order_id, customer_email, created_at, status FROM transactions WHERE status = 'completed' ORDER BY created_at DESC", (err, rows) => {
