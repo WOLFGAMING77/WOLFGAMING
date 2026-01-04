@@ -136,6 +136,11 @@ app.post('/api/support/send', async (req, res) => {
 // 1. דף Checkout עם הטופס החדש
 app.get('/checkout/:amount', (req, res) => {
     const amount = parseFloat(req.params.amount);
+    
+    if (amount < 31.00) {
+        return res.status(400).send(`${commonStyles}<div class="container"><div class="logo">WOLF ERROR</div><p>Minimum order amount is $31.00 USD.</p><a href="/" class="btn">BACK TO STORE</a></div>`);
+    }
+
     const productName = req.query.p || 'Gaming Product';
     const isFixed = req.query.fixed === 'true';
     

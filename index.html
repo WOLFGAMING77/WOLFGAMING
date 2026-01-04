@@ -498,6 +498,9 @@
         <!-- Game Currency Section -->
         <div style="text-align: center; margin-bottom: 20px;">
             <span style="color: var(--secondary); font-family: 'Orbitron'; letter-spacing: 2px; font-size: 0.9rem;">TOP-UP PACKS</span>
+            <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">
+                <span style="color: var(--primary);">🛡️</span> Minimum order of $31.00 ensures 3D-Secure protection.
+            </div>
         </div>
         <h2 class="section-title orbitron">Game Currency</h2>
         <div class="grid">
@@ -530,8 +533,14 @@
         <!-- Custom Amount -->
         <div class="custom-load">
             <h3 class="orbitron">Custom Recharge</h3>
-            <input type="number" id="customAmount" placeholder="Enter Amount ($)">
+            <input type="number" id="customAmount" placeholder="Enter Amount ($)" min="31">
+            <div id="minError" style="color: #ff4444; font-size: 0.8rem; margin-top: -10px; margin-bottom: 10px; display: none;">
+                Minimum recharge amount is $31.00
+            </div>
             <button class="btn" style="border-color: var(--secondary); color: var(--secondary);" onclick="checkoutCustom()">Load Now</button>
+            <div style="font-size: 0.7rem; color: #666; margin-top: 10px;">
+                * Safe & Secure: Minimum order of $31.00 required for encrypted processing.
+            </div>
         </div>
 
         <!-- Gaming Services Section -->
@@ -619,13 +628,29 @@
 
     <script>
         function checkout(amount, product = 'Custom Recharge', isFixed = false) {
+            if (parseFloat(amount) < 31.00) {
+                alert("Minimum order amount is $31.00");
+                return;
+            }
             // אם זה מחיר קבוע, הוא כבר כולל את העמלה. אם זה סכום חופשי, נוסיף 4% בצד השרת.
             window.location.href = `/checkout/${amount}?p=${encodeURIComponent(product)}&fixed=${isFixed}`;
         }
 
         function checkoutCustom() {
-            const val = document.getElementById('customAmount').value;
-            if (val && val > 0) checkout(val, 'Custom Recharge', false);
+            const input = document.getElementById('customAmount');
+            const error = document.getElementById('minError');
+            const val = parseFloat(input.value);
+
+            if (!val || val < 31.00) {
+                error.style.display = 'block';
+                input.style.borderColor = '#ff4444';
+                return;
+            } else {
+                error.style.display = 'none';
+                input.style.borderColor = '#333';
+            }
+            
+            checkout(val, 'Custom Recharge', false);
         }
     </script>
 </body>
