@@ -533,11 +533,11 @@
         <!-- Custom Amount -->
         <div class="custom-load">
             <h3 class="orbitron">Custom Recharge</h3>
-            <input type="number" id="customAmount" placeholder="Enter Amount ($)" min="31">
+            <input type="number" id="customAmount" placeholder="Enter Amount ($)" min="31" oninput="validateCustomAmount()">
             <div id="minError" style="color: #ff4444; font-size: 0.8rem; margin-top: -10px; margin-bottom: 10px; display: none;">
-                Minimum recharge amount is $31.00
+                Minimum recharge amount is $31.00 to ensure secure processing.
             </div>
-            <button class="btn" style="border-color: var(--secondary); color: var(--secondary);" onclick="checkoutCustom()">Load Now</button>
+            <button id="customBtn" class="btn" style="border-color: #555; color: #555; cursor: not-allowed;" onclick="checkoutCustom()" disabled>Load Now</button>
             <div style="font-size: 0.7rem; color: #666; margin-top: 10px;">
                 * Safe & Secure: Minimum order of $31.00 required for encrypted processing.
             </div>
@@ -627,6 +627,36 @@
     </footer>
 
     <script>
+        function validateCustomAmount() {
+            const input = document.getElementById('customAmount');
+            const error = document.getElementById('minError');
+            const btn = document.getElementById('customBtn');
+            const val = parseFloat(input.value);
+
+            if (val && val >= 31.00) {
+                error.style.display = 'none';
+                input.style.borderColor = '#333';
+                btn.disabled = false;
+                btn.style.borderColor = 'var(--secondary)';
+                btn.style.color = 'var(--secondary)';
+                btn.style.cursor = 'pointer';
+            } else if (input.value !== "") {
+                error.style.display = 'block';
+                input.style.borderColor = '#ff4444';
+                btn.disabled = true;
+                btn.style.borderColor = '#555';
+                btn.style.color = '#555';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                error.style.display = 'none';
+                input.style.borderColor = '#333';
+                btn.disabled = true;
+                btn.style.borderColor = '#555';
+                btn.style.color = '#555';
+                btn.style.cursor = 'not-allowed';
+            }
+        }
+
         function checkout(amount, product = 'Custom Recharge', isFixed = false) {
             if (parseFloat(amount) < 31.00) {
                 alert("Minimum order amount is $31.00");
@@ -637,20 +667,10 @@
         }
 
         function checkoutCustom() {
-            const input = document.getElementById('customAmount');
-            const error = document.getElementById('minError');
-            const val = parseFloat(input.value);
-
-            if (!val || val < 31.00) {
-                error.style.display = 'block';
-                input.style.borderColor = '#ff4444';
-                return;
-            } else {
-                error.style.display = 'none';
-                input.style.borderColor = '#333';
+            const val = parseFloat(document.getElementById('customAmount').value);
+            if (val >= 31.00) {
+                checkout(val, 'Custom Recharge', false);
             }
-            
-            checkout(val, 'Custom Recharge', false);
         }
     </script>
 </body>
