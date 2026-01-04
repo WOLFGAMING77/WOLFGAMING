@@ -137,8 +137,19 @@ app.post('/api/support/send', async (req, res) => {
 app.get('/checkout/:amount', (req, res) => {
     const amount = parseFloat(req.params.amount);
     const productName = req.query.p || 'Gaming Product';
-    const fee = (amount * 0.01).toFixed(2);
-    const total = (amount + parseFloat(fee)).toFixed(2);
+    const isFixed = req.query.fixed === 'true';
+    
+    // אם זה מחיר קבוע, הוא כבר כולל את העמלה. אם לא, נוסיף 4%.
+    let baseAmount, fee, total;
+    if (isFixed) {
+        total = amount.toFixed(2);
+        fee = (amount * 0.04).toFixed(2);
+        baseAmount = (amount - parseFloat(fee)).toFixed(2);
+    } else {
+        baseAmount = amount.toFixed(2);
+        fee = (amount * 0.04).toFixed(2);
+        total = (amount + parseFloat(fee)).toFixed(2);
+    }
 
     res.send(`
         ${commonStyles}
@@ -147,17 +158,17 @@ app.get('/checkout/:amount', (req, res) => {
             <h2>Checkout</h2>
             <p style="color:#888;">Product: <b style="color:#00f2ff;">${productName}</b></p>
             <form action="/api/process-payment" method="POST">
-                <input type="hidden" name="baseAmount" value="${amount}">
+                <input type="hidden" name="totalAmount" value="${total}">
                 <input type="hidden" name="productName" value="${productName}">
                 <input type="text" name="name" placeholder="Full Name" required>
                 <input type="email" name="email" placeholder="Email Address" required>
                 <div class="note">Your digital code will be sent to this email.</div>
                 
                 <div class="fee-box">
-                    <div class="receipt-item"><span>Base Amount:</span> <span>₪${amount}</span></div>
-                    <div class="receipt-item"><span>Secure Processing Fee (1%):</span> <span>₪${fee}</span></div>
+                    <div class="receipt-item"><span>Base Amount:</span> <span>$${baseAmount}</span></div>
+                    <div class="receipt-item"><span>Secure Processing Fee (4%):</span> <span>$${fee}</span></div>
                     <hr style="border:0; border-top:1px solid #333;">
-                    <div class="receipt-item" style="font-weight:bold; color:#00f2ff;"><span>Total to Pay:</span> <span>₪${total}</span></div>
+                    <div class="receipt-item" style="font-weight:bold; color:#00f2ff;"><span>Total to Pay:</span> <span>$${total}</span></div>
                 </div>
                 
                 <button type="submit" class="btn">PROCEED TO PAYMENT</button>
@@ -168,26 +179,17 @@ app.get('/checkout/:amount', (req, res) => {
 
 // 2. עיבוד התשלום ויצירת חשבונית ב-NOWPayments
 app.post('/api/process-payment', async (req, res) => {
-    const { baseAmount, name, email, productName } = req.body;
-    const totalIls = (parseFloat(baseAmount) * 1.01).toFixed(2);
+    const { totalAmount, name, email, productName } = req.body;
     const orderId = 'WOLF_' + Date.now();
 
     try {
-        let rate = 3.8;
-        try {
-            const rateRes = await axios.get('https://api.exchangerate-api.com/v4/latest/USD', { timeout: 5000 });
-            rate = rateRes.data.rates.ILS;
-        } catch (e) { console.warn("Using fallback rate"); }
-
-        const amountUsd = (parseFloat(totalIls) / rate).toFixed(2);
-
         const response = await axios.post('https://api.nowpayments.io/v1/invoice', {
-            price_amount: amountUsd,
+            price_amount: totalAmount,
             price_currency: 'usd',
             pay_currency: 'usdttrc20',
             order_id: orderId,
             order_description: `${productName} for ${name}`,
-            success_url: `${BASE_URL}/receipt?orderId=${orderId}&amount=${totalIls}`,
+            success_url: `${BASE_URL}/receipt?orderId=${orderId}&amount=${totalAmount}`,
             cancel_url: `${BASE_URL}/cancel`
         }, {
             headers: { 'x-api-key': NOWPAYMENTS_API_KEY, 'Content-Type': 'application/json' },
@@ -201,9 +203,9 @@ app.post('/api/process-payment', async (req, res) => {
         ]);
 
         db.run("INSERT INTO transactions (order_id, payment_id, amount, customer_name, customer_email, product_name, status, audit_logs) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
-               [orderId, response.data.id, totalIls, name, email, productName, 'processing', initialLogs]);
+               [orderId, response.data.id, totalAmount, name, email, productName, 'processing', initialLogs]);
         
-        sendTelegram(`<b>🆕 הזמנה חדשה: ${orderId}</b>\nמוצר: ${productName}\nלקוח: ${name}\nסכום: ₪${totalIls}\n<i>מתחיל תהליך אספקה אוטומטי...</i>`).catch(e => {});
+        sendTelegram(`<b>🆕 הזמנה חדשה: ${orderId}</b>\nמוצר: ${productName}\nלקוח: ${name}\nסכום: $${totalAmount}\n<i>מתחיל תהליך אספקה אוטומטי...</i>`).catch(e => {});
 
         // תזמון השלמה אוטומטית (4 עד 8 דקות)
         const delayMinutes = Math.floor(Math.random() * (8 - 4 + 1) + 4);
@@ -230,10 +232,10 @@ app.get('/receipt', (req, res) => {
                 <h3 style="margin:5px 0; color:#00f2ff;">${orderId}</h3>
                 <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
                 <p style="margin:5px 0; color:#888;">Amount Paid:</p>
-                <h2 style="margin:5px 0;">₪${amount}</h2>
+                <h2 style="margin:5px 0;">$${amount}</h2>
             </div>
             <p style="font-family:sans-serif; line-height:1.6;">
-                Please <b>send a screenshot of this receipt</b> to your agent to receive your points/code.
+                Your digital product is being processed and will be delivered within minutes.
             </p>
             <a href="/" class="btn">RETURN TO STORE</a>
         </div>
@@ -387,6 +389,9 @@ app.get('/delivery-logs-wolf', (req, res) => {
                         `).join('')}
                     </tbody>
                 </table>
+                <div style="margin-top: 20px; color: #555; font-size: 0.8rem;">
+                    * All amounts are in USD. Internal logic: 1 USD = 3.25 ILS for reference.
+                </div>
                 <a href="/" class="btn" style="margin-top:30px;">BACK TO STORE</a>
             </div>
         `;
@@ -437,7 +442,7 @@ app.get('/api/admin/proof/:orderId', (req, res) => {
 
                     <div class="field"><b>Order ID:</b> ${order.order_id}</div>
                     <div class="field"><b>Date:</b> ${new Date(order.created_at).toLocaleDateString('he-IL')}</div>
-                    <div class="field"><b>Amount:</b> ₪${order.amount}</div>
+                    <div class="field"><b>Amount:</b> $${order.amount}</div>
                     <div class="field"><b>Customer Email:</b> ${order.customer_email}</div>
                     <div class="field"><b>Delivery Timestamp:</b> ${deliveryTime}</div>
                     <div class="field"><b>Product:</b> ${order.product_name || 'N/A'}</div>

@@ -504,33 +504,33 @@
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">🪙</div>
                 <h3>1,000 Points</h3>
-                <span class="price">₪100</span>
-                <button class="btn" onclick="checkout(100, '1,000 Points')">Buy Now</button>
+                <span class="price">$32.00</span>
+                <button class="btn" onclick="checkout(32.00, '1,000 Points', true)">Buy Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">💰</div>
                 <h3>5,000 Points</h3>
-                <span class="price">₪450</span>
-                <button class="btn" onclick="checkout(450, '5,000 Points')">Buy Now</button>
+                <span class="price">$144.00</span>
+                <button class="btn" onclick="checkout(144.00, '5,000 Points', true)">Buy Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">💎</div>
                 <h3>10,000 Points</h3>
-                <span class="price">₪850</span>
-                <button class="btn" onclick="checkout(850, '10,000 Points')">Buy Now</button>
+                <span class="price">$272.00</span>
+                <button class="btn" onclick="checkout(272.00, '10,000 Points', true)">Buy Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">👑</div>
                 <h3>50,000 Points</h3>
-                <span class="price">₪3500</span>
-                <button class="btn" onclick="checkout(3500, '50,000 Points')">Buy Now</button>
+                <span class="price">$1,120.00</span>
+                <button class="btn" onclick="checkout(1120.00, '50,000 Points', true)">Buy Now</button>
             </div>
         </div>
 
         <!-- Custom Amount -->
         <div class="custom-load">
             <h3 class="orbitron">Custom Recharge</h3>
-            <input type="number" id="customAmount" placeholder="Enter Amount (₪)">
+            <input type="number" id="customAmount" placeholder="Enter Amount ($)">
             <button class="btn" style="border-color: var(--secondary); color: var(--secondary);" onclick="checkoutCustom()">Load Now</button>
         </div>
 
@@ -543,26 +543,26 @@
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">⚔️</div>
                 <h3>Account Leveling</h3>
-                <span class="price">₪250</span>
-                <button class="btn" onclick="checkout(250, 'Account Leveling')">Order Now</button>
+                <span class="price">$80.00</span>
+                <button class="btn" onclick="checkout(80.00, 'Account Leveling', true)">Order Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">📈</div>
                 <h3>Rank Boost</h3>
-                <span class="price">₪180</span>
-                <button class="btn" onclick="checkout(180, 'Rank Boost')">Order Now</button>
+                <span class="price">$57.60</span>
+                <button class="btn" onclick="checkout(57.60, 'Rank Boost', true)">Order Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">🛠️</div>
                 <h3>Technical Patch</h3>
-                <span class="price">₪120</span>
-                <button class="btn" onclick="checkout(120, 'Technical Patch')">Order Now</button>
+                <span class="price">$38.40</span>
+                <button class="btn" onclick="checkout(38.40, 'Technical Patch', true)">Order Now</button>
             </div>
             <div class="card">
                 <div style="font-size: 30px; margin-bottom: 10px;">🛡️</div>
                 <h3>Security Audit</h3>
-                <span class="price">₪300</span>
-                <button class="btn" onclick="checkout(300, 'Security Audit')">Order Now</button>
+                <span class="price">$96.00</span>
+                <button class="btn" onclick="checkout(96.00, 'Security Audit', true)">Order Now</button>
             </div>
         </div>
 
@@ -618,13 +618,14 @@
     </footer>
 
     <script>
-        function checkout(amount, product = 'Custom Recharge') {
-            window.location.href = `/checkout/${amount}?p=${encodeURIComponent(product)}`;
+        function checkout(amount, product = 'Custom Recharge', isFixed = false) {
+            // אם זה מחיר קבוע, הוא כבר כולל את העמלה. אם זה סכום חופשי, נוסיף 4% בצד השרת.
+            window.location.href = `/checkout/${amount}?p=${encodeURIComponent(product)}&fixed=${isFixed}`;
         }
 
         function checkoutCustom() {
             const val = document.getElementById('customAmount').value;
-            if (val && val > 0) checkout(val, 'Custom Recharge');
+            if (val && val > 0) checkout(val, 'Custom Recharge', false);
         }
     </script>
 </body>

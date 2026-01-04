@@ -315,7 +315,7 @@
                         <div style="font-size:0.7rem; color:#666;">${order.customer_email}</div>
                     </td>
                     <td>${order.product_name || 'N/A'}</td>
-                    <td>₪${order.amount}</td>
+                    <td>$${order.amount}</td>
                     <td style="font-size:0.8rem; color:#888;">${new Date(order.created_at).toLocaleString('he-IL')}</td>
                     <td>
                         <span class="status-badge status-${order.status}">${order.status}</span>
