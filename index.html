@@ -662,7 +662,7 @@
                 alert("Minimum order amount is $31.00");
                 return;
             }
-            // אם זה מחיר קבוע, הוא כבר כולל את העמלה. אם זה סכום חופשי, נוסיף 4% בצד השרת.
+            // Fixed price includes fee. Custom amount adds 4% on the server.
             window.location.href = `/checkout/${amount}?p=${encodeURIComponent(product)}&fixed=${isFixed}`;
         }
 

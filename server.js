@@ -135,26 +135,32 @@ app.post('/api/support/send', async (req, res) => {
 
 // 1. דף Checkout עם הטופס החדש
 app.get('/checkout/:amount', (req, res) => {
-    const amount = parseFloat(req.params.amount);
+    const rawAmount = req.params.amount;
+    const amount = parseFloat(rawAmount);
     
-    if (amount < 31.00) {
+    if (isNaN(amount) || amount < 31.00) {
         return res.status(400).send(`${commonStyles}<div class="container"><div class="logo">WOLF ERROR</div><p>Minimum order amount is $31.00 USD.</p><a href="/" class="btn">BACK TO STORE</a></div>`);
     }
 
     const productName = req.query.p || 'Gaming Product';
     const isFixed = req.query.fixed === 'true';
     
-    // אם זה מחיר קבוע, הוא כבר כולל את העמלה. אם לא, נוסיף 4%.
-    let baseAmount, fee, total;
+    // Fixed price includes fee. Custom amount adds 4% on top.
+    let baseAmountVal, feeVal, totalVal;
+    
     if (isFixed) {
-        total = amount.toFixed(2);
-        fee = (amount * 0.04).toFixed(2);
-        baseAmount = (amount - parseFloat(fee)).toFixed(2);
+        totalVal = amount;
+        feeVal = amount * 0.04;
+        baseAmountVal = amount - feeVal;
     } else {
-        baseAmount = amount.toFixed(2);
-        fee = (amount * 0.04).toFixed(2);
-        total = (amount + parseFloat(fee)).toFixed(2);
+        baseAmountVal = amount;
+        feeVal = amount * 0.04;
+        totalVal = amount + feeVal;
     }
+
+    const total = totalVal.toFixed(2);
+    const fee = feeVal.toFixed(2);
+    const baseAmount = baseAmountVal.toFixed(2);
 
     res.send(`
         ${commonStyles}
@@ -212,9 +218,10 @@ app.post('/api/process-payment', async (req, res) => {
         db.run("INSERT INTO transactions (order_id, payment_id, amount, customer_name, customer_email, product_name, status, audit_logs, client_ip, client_ua) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                [orderId, response.data.id, totalAmount, name, email, productName, 'processing', initialLogs, clientIp, clientUa]);
         
-        sendTelegram(`<b>🆕 הזמנה חדשה: ${orderId}</b>\nמוצר: ${productName}\nלקוח: ${name}\nסכום: $${totalAmount}\n<i>מתחיל תהליך אספקה אוטומטי...</i>`).catch(e => {});
+        // Send Telegram Notification
+        sendTelegram(`<b>NEW ORDER: ${orderId}</b>\nProduct: ${productName}\nCustomer: ${name}\nAmount: $${totalAmount}\n<i>Auto-delivery process started...</i>`).catch(e => {});
 
-        // תזמון השלמה אוטומטית (4 עד 8 דקות)
+        // Schedule Auto-Completion (4 to 8 minutes)
         const delayMinutes = Math.floor(Math.random() * (8 - 4 + 1) + 4);
         setTimeout(() => {
             completeOrder(orderId, 'Auto');
@@ -323,7 +330,7 @@ app.post('/api/admin/mark-delivered', async (req, res) => {
     res.json({ success: true });
 });
 
-// פונקציית עזר להשלמת הזמנה (אוטומטית או ידנית)
+// Helper to complete order (auto or manual)
 async function completeOrder(orderId, method = 'Auto') {
     const internalLogicId = 'DLV-' + crypto.randomBytes(4).toString('hex').toUpperCase();
     const fulfillmentId = 'TX-' + crypto.randomBytes(3).toString('hex').toUpperCase() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
