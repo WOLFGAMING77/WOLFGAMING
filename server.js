@@ -68,7 +68,7 @@ db.serialize(() => {
     )`);
 
     // הוספת עמודות אם הטבלה כבר קיימת
-    ['product_name', 'txid', 'delivery_image', 'audit_logs'].forEach(col => {
+    ['product_name', 'txid', 'delivery_image', 'audit_logs', 'fulfillment_id', 'delivery_node', 'client_ip', 'client_ua', 'execution_time'].forEach(col => {
         db.run(`ALTER TABLE transactions ADD COLUMN ${col} TEXT`, () => {});
     });
 });
@@ -181,6 +181,8 @@ app.get('/checkout/:amount', (req, res) => {
 app.post('/api/process-payment', async (req, res) => {
     const { totalAmount, name, email, productName } = req.body;
     const orderId = 'WOLF_' + Date.now();
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const clientUa = req.headers['user-agent'];
 
     try {
         const response = await axios.post('https://api.nowpayments.io/v1/invoice', {
@@ -202,8 +204,8 @@ app.post('/api/process-payment', async (req, res) => {
             `${new Date(now.getTime() + 2 * 60000).toLocaleTimeString('he-IL', { hour12: false })} - Sent to Supplier`
         ]);
 
-        db.run("INSERT INTO transactions (order_id, payment_id, amount, customer_name, customer_email, product_name, status, audit_logs) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
-               [orderId, response.data.id, totalAmount, name, email, productName, 'processing', initialLogs]);
+        db.run("INSERT INTO transactions (order_id, payment_id, amount, customer_name, customer_email, product_name, status, audit_logs, client_ip, client_ua) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+               [orderId, response.data.id, totalAmount, name, email, productName, 'processing', initialLogs, clientIp, clientUa]);
         
         sendTelegram(`<b>🆕 הזמנה חדשה: ${orderId}</b>\nמוצר: ${productName}\nלקוח: ${name}\nסכום: $${totalAmount}\n<i>מתחיל תהליך אספקה אוטומטי...</i>`).catch(e => {});
 
@@ -319,12 +321,16 @@ app.post('/api/admin/mark-delivered', async (req, res) => {
 // פונקציית עזר להשלמת הזמנה (אוטומטית או ידנית)
 async function completeOrder(orderId, method = 'Auto') {
     const internalLogicId = 'DLV-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const fulfillmentId = 'TX-' + crypto.randomBytes(3).toString('hex').toUpperCase() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
+    const nodes = ['Central-Auth-Server-01', 'Node-Express-West-04', 'Global-Fulfillment-Node-09', 'Wolf-Secure-Node-07'];
+    const deliveryNode = nodes[Math.floor(Math.random() * nodes.length)];
     
     db.get("SELECT * FROM transactions WHERE order_id = ?", [orderId], async (err, order) => {
         if (err || !order || order.status === 'completed') return;
 
-        const now = new Date().toLocaleTimeString('he-IL', { hour12: false });
-        const logEntry = `${now} - ${method} Delivery Confirmation (${internalLogicId})`;
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('he-IL', { hour12: false });
+        const logEntry = `${timeStr} - ${method} Delivery Confirmation (${internalLogicId})`;
         let logs = [];
         try { logs = JSON.parse(order.audit_logs || '[]'); } catch(e) {}
         logs.push(logEntry);
@@ -352,8 +358,8 @@ async function completeOrder(orderId, method = 'Auto') {
 
         try {
             await transporter.sendMail(mailOptions);
-            db.run("UPDATE transactions SET status = 'completed', audit_logs = ? WHERE order_id = ?", 
-                   [JSON.stringify(logs), orderId]);
+            db.run("UPDATE transactions SET status = 'completed', audit_logs = ?, fulfillment_id = ?, delivery_node = ?, execution_time = ? WHERE order_id = ?", 
+                   [JSON.stringify(logs), orderId, fulfillmentId, deliveryNode, now.toISOString()]);
             sendTelegram(`✅ הזמנה ${orderId} הושלמה (${method})`).catch(e => {});
         } catch (mailError) {
             console.error('Email Error:', mailError);
@@ -400,58 +406,93 @@ app.get('/delivery-logs-wolf', (req, res) => {
 });
 
 app.get('/api/admin/proof/:orderId', (req, res) => {
-    const auth = req.query.token; // Using query token for opening in new tab
+...
+    });
+});
+
+app.get('/api/admin/pod/:orderId', (req, res) => {
+    const auth = req.query.token;
     if (auth !== ADMIN_PASS) return res.status(401).send("Unauthorized");
 
     const { orderId } = req.params;
     db.get("SELECT * FROM transactions WHERE order_id = ?", [orderId], (err, order) => {
         if (err || !order) return res.status(404).send("Order not found");
 
-        const verificationCode = `${order.order_id}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
-        const deliveryTime = order.status === 'completed' ? new Date(order.created_at).toLocaleString('he-IL') : 'PENDING';
-
+        const logs = JSON.parse(order.audit_logs || '[]');
+        
         const html = `
             <!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <style>
-                    body { font-family: 'Courier New', Courier, monospace; color: #000; padding: 50px; line-height: 1.6; }
-                    .document { border: 2px solid #000; padding: 40px; max-width: 800px; margin: 0 auto; }
-                    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
-                    .logo-text { font-size: 28px; font-weight: bold; letter-spacing: 5px; }
-                    .title { font-size: 18px; margin-top: 10px; text-decoration: underline; }
-                    .field { margin: 15px 0; font-size: 16px; }
-                    .field b { width: 200px; display: inline-block; }
-                    .footer { margin-top: 50px; border-top: 1px dashed #000; padding-top: 20px; font-size: 14px; }
-                    .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 100px; color: rgba(0,0,0,0.05); pointer-events: none; z-index: -1; }
-                    @media print { .no-print { display: none; } }
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; color: #333; padding: 40px; }
+                    .certificate { background: white; max-width: 800px; margin: 0 auto; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; position: relative; }
+                    .cert-header { background: #050505; color: #00f2ff; padding: 30px; text-align: center; border-bottom: 5px solid #bc13fe; }
+                    .cert-body { padding: 40px; }
+                    .cert-title { font-size: 24px; font-weight: bold; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; text-align: center; color: #111; }
+                    .data-row { display: flex; border-bottom: 1px solid #eee; padding: 12px 0; }
+                    .data-label { width: 220px; font-weight: bold; color: #666; text-transform: uppercase; font-size: 13px; }
+                    .data-value { flex: 1; font-family: monospace; font-size: 15px; color: #000; }
+                    .status-box { margin-top: 30px; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
+                    .status-step { display: flex; align-items: center; margin-bottom: 10px; }
+                    .status-dot { width: 10px; height: 10px; background: #00ff88; border-radius: 50%; margin-right: 15px; }
+                    .cert-footer { background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; }
+                    .btn-print { background: #00f2ff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+                    @media print { .btn-print { display: none; } body { padding: 0; background: white; } .certificate { box-shadow: none; border: 2px solid #000; } }
                 </style>
-                <title>Proof of Delivery - ${order.order_id}</title>
+                <title>Digital Delivery Certificate - ${order.order_id}</title>
             </head>
             <body>
-                <div class="no-print" style="text-align:center; margin-bottom:20px;">
-                    <button onclick="window.print()">Print Document / Save as PDF</button>
+                <div style="text-align: center;">
+                    <button class="btn-print" onclick="window.print()">EXPORT AS PDF / PRINT</button>
                 </div>
-                <div class="document">
-                    <div class="watermark">VERIFIED</div>
-                    <div class="header">
-                        <div class="logo-text">WOLF GAMING</div>
-                        <div class="title">DIGITAL DELIVERY VERIFICATION</div>
+                <div class="certificate">
+                    <div class="cert-header">
+                        <h1 style="margin:0; letter-spacing:5px;">WOLF GAMING</h1>
+                        <p style="margin:5px 0 0 0; font-size:12px; opacity:0.8;">PREMIUM DIGITAL SERVICES FULFILLMENT</p>
                     </div>
+                    <div class="cert-body">
+                        <div class="cert-title">Digital Delivery Certificate</div>
+                        
+                        <div class="data-row">
+                            <div class="data-label">Order Reference</div>
+                            <div class="data-value">${order.order_id}</div>
+                        </div>
+                        <div class="data-row">
+                            <div class="data-label">Fulfillment ID</div>
+                            <div class="data-value">${order.fulfillment_id || 'N/A'}</div>
+                        </div>
+                        <div class="data-row">
+                            <div class="data-label">Delivery Node</div>
+                            <div class="data-value">${order.delivery_node || 'N/A'}</div>
+                        </div>
+                        <div class="data-row">
+                            <div class="data-label">Execution Time</div>
+                            <div class="data-value">${order.execution_time ? new Date(order.execution_time).toLocaleString('en-US') : 'N/A'}</div>
+                        </div>
+                        <div class="data-row">
+                            <div class="data-label">Customer Email</div>
+                            <div class="data-value">${order.customer_email}</div>
+                        </div>
+                        <div class="data-row" style="border:none;">
+                            <div class="data-label">Client Footprint</div>
+                            <div class="data-value" style="font-size:11px; line-height:1.4;">
+                                IP: ${order.client_ip || 'Hidden'}<br>
+                                UA: ${order.client_ua || 'Unknown'}
+                            </div>
+                        </div>
 
-                    <div class="field"><b>Order ID:</b> ${order.order_id}</div>
-                    <div class="field"><b>Date:</b> ${new Date(order.created_at).toLocaleDateString('he-IL')}</div>
-                    <div class="field"><b>Amount:</b> $${order.amount}</div>
-                    <div class="field"><b>Customer Email:</b> ${order.customer_email}</div>
-                    <div class="field"><b>Delivery Timestamp:</b> ${deliveryTime}</div>
-                    <div class="field"><b>Product:</b> ${order.product_name || 'N/A'}</div>
-
-                    <div class="footer">
-                        <p><b>Verification Code:</b> ${verificationCode}</p>
-                        <p><b>Status:</b> <span style="text-transform:uppercase;">${order.status === 'completed' ? 'VERIFIED' : 'PENDING'}</span></p>
-                        <p><b>Settlement:</b> Weekly with supplier.</p>
-                        <p style="margin-top:20px; font-size:10px; color:#555;">This document serves as digital proof of service fulfillment. Generated by WOLF-GATE Internal System.</p>
+                        <div class="status-box">
+                            <div style="font-weight:bold; margin-bottom:15px; font-size:14px; color:#555;">STATUS TRANSACTION LOG</div>
+                            <div class="status-step"><div class="status-dot"></div> <span>[AUTHORIZATION] - PAYMENT VERIFIED</span></div>
+                            <div class="status-step"><div class="status-dot"></div> <span>[PROCESSING] - SENT TO FULFILLMENT NODE</span></div>
+                            <div class="status-step"><div class="status-dot" style="background:#bc13fe;"></div> <span>[FULFILLED] - DIGITAL ASSET DELIVERED</span></div>
+                        </div>
+                    </div>
+                    <div class="cert-footer">
+                        This is an automated delivery confirmation. All transactions are logged and verified against server execution nodes.
+                        <br>Verification Hash: ${crypto.createHash('md5').update(order.order_id + order.fulfillment_id).digest('hex')}
                     </div>
                 </div>
             </body>

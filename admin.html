@@ -346,6 +346,12 @@
                                 onclick="downloadProof('${order.order_id}')">
                                 Download Official Proof
                             </button>
+                            ${order.status === 'completed' ? `
+                                <button class="btn" style="padding: 5px 10px; font-size: 0.7rem; width: auto; border-color: var(--secondary); color: var(--secondary);" 
+                                    onclick="viewPOD('${order.order_id}')">
+                                    View Delivery Proof
+                                </button>
+                            ` : ''}
                         </div>
                     </td>
                 `;
@@ -399,6 +405,10 @@
 
         function downloadProof(orderId) {
             window.open(`/api/admin/proof/${orderId}?token=${currentPass}`, '_blank');
+        }
+
+        function viewPOD(orderId) {
+            window.open(`/api/admin/pod/${orderId}?token=${currentPass}`, '_blank');
         }
 
         async function updateDelivery(orderId) {
