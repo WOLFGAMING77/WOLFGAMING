@@ -9,28 +9,47 @@
         :root { --neon: #00f2ff; --bg: #050505; --card: #111; }
         body { font-family: 'Assistant', sans-serif; background: var(--bg); color: #fff; line-height: 1.6; margin: 0; padding: 40px; }
         .container { max-width: 800px; margin: 0 auto; background: var(--card); padding: 40px; border-radius: 20px; border: 1px solid #333; }
-        h1, h2 { font-family: 'Orbitron', sans-serif; color: var(--neon); text-transform: uppercase; }
-        h1 { border-bottom: 2px solid var(--neon); padding-bottom: 10px; margin-bottom: 30px; }
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; color: var(--neon); text-transform: uppercase; }
+        h1 { border-bottom: 2px solid var(--neon); padding-bottom: 10px; margin-bottom: 30px; font-size: 1.8rem; }
+        h3 { margin-top: 30px; font-size: 1.2rem; }
         .back-link { display: inline-block; margin-top: 30px; color: var(--neon); text-decoration: none; font-weight: bold; border: 1px solid var(--neon); padding: 10px 20px; border-radius: 50px; transition: 0.3s; }
         .back-link:hover { background: var(--neon); color: #000; }
-        p { color: #ccc; }
+        p, li { color: #ccc; margin-bottom: 15px; }
+        ul { padding-left: 20px; }
+        strong { color: #fff; }
+        .contact-info { margin-top: 40px; border-top: 1px solid #333; padding-top: 20px; color: #888; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Terms of Service</h1>
+        <h1>Terms of Service & Purchase Agreement</h1>
         
-        <h2>1. Services</h2>
-        <p>WOLF GAMING provides digital gaming credits. By using our service, you agree to these terms. All transactions are processed through secure cryptocurrency gateways.</p>
+        <h3>1. Services & Digital Goods</h3>
+        <p>WOLF GAMING provides digital gaming credits and assets. By initiating a transaction, you agree to these legally binding terms. All payments are processed through secure, third-party fiat-to-crypto gateways.</p>
 
-        <h2>2. Delivery</h2>
-        <p>Digital products are delivered instantly or within 24 hours of payment confirmation. Please ensure your contact details are correct.</p>
+        <h3>2. Digital Delivery & Proof of Service</h3>
+        <ul>
+            <li><strong>Delivery Timeline:</strong> Digital products are dispatched immediately or within a maximum of 24 hours following payment confirmation.</li>
+            <li><strong>Proof of Delivery:</strong> For every transaction, WOLF GAMING maintains a comprehensive 'Digital Delivery Proof' log. This includes the blockchain transaction hash (TXID), precise timestamps, and user identifiers. This log serves as definitive evidence of service completion.</li>
+        </ul>
 
-        <h2>3. Refund Policy</h2>
-        <p>Due to the digital nature of our products, all sales are final. Refunds are only issued in cases where the service was not provided as described. Cryptocurrency transaction fees are non-refundable.</p>
+        <h3>3. Strict No-Refund Policy</h3>
+        <ul>
+            <li><strong>Finality of Sale:</strong> Due to the irreversible nature of cryptocurrency and digital goods, all sales are final.</li>
+            <li><strong>No Chargebacks:</strong> By completing a purchase, the user acknowledges that they waive the right to any 'change of heart' refunds or payment reversals.</li>
+            <li><strong>Exceptional Cases:</strong> Refunds are only considered if WOLF GAMING fails to deliver the service as described, excluding any network or cryptocurrency price volatility.</li>
+        </ul>
 
-        <h2>4. Security</h2>
-        <p>Users are responsible for the security of their payment details and wallets. WOLF GAMING is not liable for lost funds due to user error.</p>
+        <h3>4. Compliance & Anti-Money Laundering (AML)</h3>
+        <p>WOLF GAMING adheres to international AML and KYC standards. We and our payment partners reserve the right to request identity verification for any transaction to ensure security and prevent fraud.</p>
+
+        <h3>5. User Responsibility & Wallet Security</h3>
+        <p>Users are solely responsible for providing the correct wallet address (USDT/XRP). WOLF GAMING is not liable for assets sent to an incorrect address provided by the user.</p>
+
+        <div class="contact-info">
+            <p><strong>Contact Information:</strong><br>
+            For support or inquiries: WOLFGAMING@OUTLOOK.CO.IL</p>
+        </div>
 
         <a href="/" class="back-link">Back to Home</a>
     </div>
