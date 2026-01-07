@@ -111,7 +111,7 @@ app.post('/api/support/send', async (req, res) => {
     
     const mailOptions = {
         from: `"Support Ticket" <${process.env.EMAIL_USER}>`,
-        to: 'WOLFGAMING@OUTLOOK.CO.IL',
+        to: 'seles@wolfgamingstore.net',
         replyTo: email,
         subject: `New Support Ticket from ${name}`,
         html: `
