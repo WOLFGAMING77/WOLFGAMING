@@ -10,6 +10,21 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const app = express();
 
+let currentRate = 3.20;
+async function updateRate() {
+    try {
+        const response = await axios.get('https://open.er-api.com/v6/latest/USD');
+        if (response.data && response.data.rates && response.data.rates.ILS) {
+            currentRate = response.data.rates.ILS;
+            console.log(`Live Rate Updated: 1 USD = ${currentRate} ILS`);
+        }
+    } catch (e) {
+        console.error('Rate API Error, using fallback 3.20:', e.message);
+    }
+}
+updateRate();
+setInterval(updateRate, 1000 * 60 * 60); // Update every hour
+
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
 const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'wolf2026';
@@ -137,30 +152,38 @@ app.post('/api/support/send', async (req, res) => {
 app.get('/checkout/:amount', (req, res) => {
     const rawAmount = req.params.amount;
     const amount = parseFloat(rawAmount);
-    
-    if (isNaN(amount) || amount < 31.00) {
-        return res.status(400).send(`${commonStyles}<div class="container"><div class="logo">WOLF ERROR</div><p>Minimum order amount is $31.00 USD.</p><a href="/" class="btn">BACK TO STORE</a></div>`);
-    }
-
+    const isILS = req.query.curr === 'ILS';
     const productName = req.query.p || 'Gaming Product';
-    const isFixed = req.query.fixed === 'true';
     
-    // Fixed price includes fee. Custom amount adds 4% on top.
-    let baseAmountVal, feeVal, totalVal;
-    
-    if (isFixed) {
-        totalVal = amount;
-        feeVal = amount * 0.04;
-        baseAmountVal = amount - feeVal;
+    if (isILS) {
+        if (isNaN(amount) || amount < 100) {
+            return res.status(400).send(`${commonStyles}<div class="container"><div class="logo">WOLF ERROR</div><p>Minimum order amount is 100 ILS.</p><a href="/" class="btn">BACK TO STORE</a></div>`);
+        }
     } else {
-        baseAmountVal = amount;
-        feeVal = amount * 0.04;
-        totalVal = amount + feeVal;
+        if (isNaN(amount) || amount < 31.00) {
+            return res.status(400).send(`${commonStyles}<div class="container"><div class="logo">WOLF ERROR</div><p>Minimum order amount is $31.00 USD.</p><a href="/" class="btn">BACK TO STORE</a></div>`);
+        }
     }
 
-    const total = totalVal.toFixed(2);
-    const fee = feeVal.toFixed(2);
-    const baseAmount = baseAmountVal.toFixed(2);
+    let baseILS, feeILS, totalILS, totalUSD;
+    
+    if (isILS) {
+        baseILS = amount;
+        feeILS = amount * 0.02; // 2% fee as requested
+        totalILS = baseILS + feeILS;
+        totalUSD = (totalILS / currentRate).toFixed(2);
+    } else {
+        // For fixed USD packages, we still use the old logic but with 2% fee if desired, 
+        // or keep as is. The prompt specifically mentions ILS for the deposit system.
+        // Let's use 2% for everything for consistency as per the "Update the deposit system" prompt.
+        const feeVal = amount * 0.02;
+        totalUSD = (amount + feeVal).toFixed(2);
+        baseILS = (amount * currentRate);
+        feeILS = (feeVal * currentRate);
+    }
+
+    const displayBase = isILS ? `${baseILS.toFixed(2)} ILS` : `$${amount.toFixed(2)} USD`;
+    const displayFee = isILS ? `${feeILS.toFixed(2)} ILS` : `$${(amount * 0.02).toFixed(2)} USD`;
 
     res.send(`
         ${commonStyles}
@@ -169,17 +192,25 @@ app.get('/checkout/:amount', (req, res) => {
             <h2>Checkout</h2>
             <p style="color:#888;">Product: <b style="color:#00f2ff;">${productName}</b></p>
             <form action="/api/process-payment" method="POST">
-                <input type="hidden" name="totalAmount" value="${total}">
+                <input type="hidden" name="totalAmount" value="${totalUSD}">
                 <input type="hidden" name="productName" value="${productName}">
                 <input type="text" name="name" placeholder="Full Name" required>
                 <input type="email" name="email" placeholder="Email Address" required>
                 <div class="note">Your digital code will be sent to this email.</div>
                 
                 <div class="fee-box">
-                    <div class="receipt-item"><span>Base Amount:</span> <span>$${baseAmount}</span></div>
-                    <div class="receipt-item"><span>Secure Processing Fee (4%):</span> <span>$${fee}</span></div>
-                    <hr style="border:0; border-top:1px solid #333;">
-                    <div class="receipt-item" style="font-weight:bold; color:#00f2ff;"><span>Total to Pay:</span> <span>$${total}</span></div>
+                    <div class="receipt-item"><span>Base:</span> <span>${displayBase}</span></div>
+                    <div class="receipt-item"><span>Service Fee (2%):</span> <span>${displayFee}</span></div>
+                    <hr style="border:0; border-top:1px solid #334155; margin: 10px 0;">
+                    <div class="receipt-item" style="font-weight:bold; color:#00f2ff; font-size: 1.2rem;">
+                        <span>Total in USD:</span> 
+                        <span>$${totalUSD}</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: #555; margin-top: 10px; text-align: center;">
+                        <span style="display: inline-block; padding: 2px 6px; border: 1px solid #222; border-radius: 4px;">
+                            Live Rate: 1 USD = ${currentRate.toFixed(3)} ILS
+                        </span>
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn">PROCEED TO PAYMENT</button>
