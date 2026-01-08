@@ -107,7 +107,7 @@ const commonStyles = `
     .container { background: #0a0a0a; border: 1px solid #00f2ff; padding: 40px; border-radius: 20px; box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); max-width: 500px; width: 100%; text-align: center; }
     .logo { font-size: 2.5rem; font-weight: bold; color: #00f2ff; text-shadow: 0 0 15px #00f2ff; margin-bottom: 30px; }
     input { width: 100%; padding: 15px; margin: 10px 0; background: #111; border: 1px solid #333; color: white; border-radius: 10px; font-family: sans-serif; }
-    .fee-box { background: #111; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; border-left: 4px solid #bc13fe; }
+    .summary-box { background: #111; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; border-left: 4px solid #bc13fe; }
     .btn { background: transparent; color: #00f2ff; border: 1px solid #00f2ff; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: 0.3s; width: 100%; margin-top: 20px; }
     .btn:hover { background: #00f2ff; color: #000; box-shadow: 0 0 30px #00f2ff; }
     .note { font-size: 0.8rem; color: #888; margin-top: 10px; font-family: sans-serif; }
@@ -183,7 +183,7 @@ app.get('/checkout/:amount', (req, res) => {
     }
 
     const displayBase = isILS ? `${baseILS.toFixed(2)} ILS` : `$${amount.toFixed(2)} USD`;
-    const displayFee = isILS ? `${feeILS.toFixed(2)} ILS` : `$${(amount * 0.02).toFixed(2)} USD`;
+    const displayService = isILS ? `${feeILS.toFixed(2)} ILS` : `$${(amount * 0.02).toFixed(2)} USD`;
 
     res.send(`
         ${commonStyles}
@@ -196,15 +196,15 @@ app.get('/checkout/:amount', (req, res) => {
                 <input type="hidden" name="productName" value="${productName}">
                 <input type="text" name="name" placeholder="Full Name" required>
                 <input type="email" name="email" placeholder="Email Address" required>
-                <div class="note">Your digital code will be sent to this email.</div>
+                <div class="note">Your digital assets will be delivered to this email.</div>
                 
-                <div class="fee-box">
-                    <div class="receipt-item"><span>Base:</span> <span>${displayBase}</span></div>
-                    <div class="receipt-item"><span>Service Fee (2%):</span> <span>${displayFee}</span></div>
+                <div class="summary-box">
+                    <div class="receipt-item"><span>Deposit Amount:</span> <span>${displayBase}</span></div>
+                    <div class="receipt-item"><span>Platform Service:</span> <span>${displayService}</span></div>
                     <hr style="border:0; border-top:1px solid #334155; margin: 10px 0;">
                     <div class="receipt-item" style="font-weight:bold; color:#00f2ff; font-size: 1.2rem;">
-                        <span>Total in USD:</span> 
-                        <span>$${totalUSD}</span>
+                        <span>Total to Pay:</span> 
+                        <span>$${totalUSD} USD</span>
                     </div>
                     <div style="font-size: 0.7rem; color: #555; margin-top: 10px; text-align: center;">
                         <span style="display: inline-block; padding: 2px 6px; border: 1px solid #222; border-radius: 4px;">
@@ -213,7 +213,7 @@ app.get('/checkout/:amount', (req, res) => {
                     </div>
                 </div>
                 
-                <button type="submit" class="btn">PROCEED TO PAYMENT</button>
+                <button type="submit" class="btn">Confirm Deposit $${totalUSD}</button>
             </form>
         </div>
     `);
@@ -242,12 +242,12 @@ app.post('/api/process-payment', async (req, res) => {
 
         const now = new Date();
         const initialLogs = JSON.stringify([
-            `${now.toLocaleTimeString('he-IL', { hour12: false })} - Payment Received`,
-            `${new Date(now.getTime() + 2 * 60000).toLocaleTimeString('he-IL', { hour12: false })} - Sent to Supplier`
+            `${now.toLocaleTimeString('he-IL', { hour12: false })} - Order Initialized`,
+            `${new Date(now.getTime() + 2 * 60000).toLocaleTimeString('he-IL', { hour12: false })} - Sent to Fulfillment Node`
         ]);
 
         db.run("INSERT INTO transactions (order_id, payment_id, amount, customer_name, customer_email, product_name, status, audit_logs, client_ip, client_ua) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-               [orderId, response.data.id, totalAmount, name, email, productName, 'processing', initialLogs, clientIp, clientUa]);
+               [orderId, response.data.id, totalAmount, name, email, productName, 'fulfilling', initialLogs, clientIp, clientUa]);
         
         // Send Telegram Notification
         sendTelegram(`<b>NEW ORDER: ${orderId}</b>\nProduct: ${productName}\nCustomer: ${name}\nAmount: $${totalAmount}\n<i>Auto-delivery process started...</i>`).catch(e => {});
@@ -271,16 +271,16 @@ app.get('/receipt', (req, res) => {
         ${commonStyles}
         <div class="container">
             <div class="logo">WOLF GAMING</div>
-            <h1 style="color:#00ff88;">✅ Payment Confirmed!</h1>
-            <div class="fee-box" style="border-color:#00ff88; text-align:center;">
-                <p style="margin:5px 0; color:#888;">Order Number:</p>
+            <h1 style="color:#00ff88;">✅ Order Confirmed!</h1>
+            <div class="summary-box" style="border-color:#00ff88; text-align:center;">
+                <p style="margin:5px 0; color:#888;">Reference Number:</p>
                 <h3 style="margin:5px 0; color:#00f2ff;">${orderId}</h3>
                 <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
-                <p style="margin:5px 0; color:#888;">Amount Paid:</p>
+                <p style="margin:5px 0; color:#888;">Total Assets:</p>
                 <h2 style="margin:5px 0;">$${amount}</h2>
             </div>
             <p style="font-family:sans-serif; line-height:1.6;">
-                Your digital product is being processed and will be delivered within minutes.
+                Your digital assets are being finalized and will be delivered within minutes.
             </p>
             <a href="/" class="btn">RETURN TO STORE</a>
         </div>
@@ -585,9 +585,9 @@ app.get('/api/admin/pod/:orderId', (req, res) => {
 
                         <div class="status-box">
                             <div style="font-weight:bold; margin-bottom:15px; font-size:14px; color:#555;">STATUS TRANSACTION LOG</div>
-                            <div class="status-step"><div class="status-dot"></div> <span>[AUTHORIZATION] - PAYMENT VERIFIED</span></div>
-                            <div class="status-step"><div class="status-dot"></div> <span>[PROCESSING] - SENT TO FULFILLMENT NODE</span></div>
-                            <div class="status-step"><div class="status-dot" style="background:#bc13fe;"></div> <span>[FULFILLED] - DIGITAL ASSET DELIVERED</span></div>
+                            <div class="status-step"><div class="status-dot"></div> <span>[AUTHORIZATION] - ASSETS VERIFIED</span></div>
+                            <div class="status-step"><div class="status-dot"></div> <span>[FULFILLMENT] - SENT TO DELIVERY NODE</span></div>
+                            <div class="status-step"><div class="status-dot" style="background:#bc13fe;"></div> <span>[DELIVERED] - ASSETS TRANSFERRED</span></div>
                         </div>
                     </div>
                     <div class="cert-footer">

@@ -15,7 +15,7 @@
             --text: #ffffff;
             --success: #00ff88;
             --pending: #ffcc00;
-            --processing: #0099ff;
+            --fulfilling: #0099ff;
         }
 
         body {
@@ -140,7 +140,7 @@
         }
 
         .status-waiting, .status-pending { background: #333; color: #aaa; }
-        .status-processing { background: var(--processing); color: white; }
+        .status-fulfilling { background: var(--fulfilling); color: white; }
         .status-completed { background: var(--success); color: black; }
 
         .actions select {
@@ -331,7 +331,7 @@
                     <td class="actions">
                         <select onchange="updateStatus('${order.order_id}', this.value)">
                             <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="fulfilling" ${order.status === 'fulfilling' ? 'selected' : ''}>Fulfilling</option>
                             <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
                         </select>
                         <button class="logs-btn" onclick="showLogs('${encodeURIComponent(order.audit_logs)}')">Logs</button>
