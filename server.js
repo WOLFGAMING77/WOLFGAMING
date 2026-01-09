@@ -206,22 +206,23 @@ app.get('/checkout/:amount', (req, res) => {
                     font-family: 'Inter', sans-serif; 
                     margin: 0; 
                     padding: 0; 
-                    display: flex; 
-                    flex-direction: column; 
-                    align-items: center; 
                     min-height: 100vh; 
                     box-sizing: border-box;
                 }
 
-                .checkout-wrapper {
-                    max-width: 550px;
-                    width: 90%;
+                .checkout-layout {
+                    display: grid;
+                    grid-template-columns: 1fr 350px;
+                    gap: 40px;
+                    max-width: 1100px;
+                    width: 95%;
                     margin: 60px auto;
                 }
 
                 .logo-area {
                     text-align: center;
                     margin-bottom: 40px;
+                    grid-column: 1 / -1;
                 }
 
                 .logo-text {
@@ -240,10 +241,157 @@ app.get('/checkout/:amount', (req, res) => {
                     border-radius: 20px;
                     padding: 35px;
                     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-                    margin-bottom: 25px;
+                    height: fit-content;
                 }
 
-                .card-title {
+                .tabs-container {
+                    display: flex;
+                    border-bottom: 1px solid var(--border);
+                    margin-bottom: 30px;
+                    gap: 20px;
+                }
+
+                .tab-btn {
+                    background: none;
+                    border: none;
+                    color: var(--text-muted);
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    padding: 15px 5px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .tab-btn.active {
+                    color: var(--gold);
+                }
+
+                .tab-btn.active::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -1px;
+                    left: 0;
+                    width: 100%;
+                    height: 2px;
+                    background: var(--gold);
+                    box-shadow: 0 0 10px var(--gold);
+                }
+
+                .tab-content {
+                    display: none;
+                    animation: fadeIn 0.5s ease;
+                }
+
+                .tab-content.active {
+                    display: block;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                /* Crypto UI Styling */
+                .crypto-info {
+                    text-align: center;
+                }
+
+                .qr-container {
+                    width: 180px;
+                    height: 180px;
+                    margin: 0 auto 25px;
+                    background: #fff;
+                    padding: 10px;
+                    border-radius: 12px;
+                    border: 4px solid var(--gold);
+                    box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .address-field {
+                    background: #000;
+                    border: 1px solid var(--border);
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 15px;
+                    margin-bottom: 20px;
+                    gap: 10px;
+                }
+
+                .address-text {
+                    flex-grow: 1;
+                    font-family: monospace;
+                    font-size: 0.85rem;
+                    color: #aaa;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .copy-btn {
+                    background: var(--gold);
+                    border: none;
+                    border-radius: 6px;
+                    color: #000;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.7rem;
+                    font-weight: 900;
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    transition: 0.3s;
+                }
+
+                .copy-btn:hover {
+                    filter: brightness(1.2);
+                    box-shadow: 0 0 10px var(--gold);
+                }
+
+                .upload-area {
+                    border: 2px dashed var(--border);
+                    border-radius: 15px;
+                    padding: 30px;
+                    text-align: center;
+                    transition: 0.3s;
+                    cursor: pointer;
+                    background: #050505;
+                }
+
+                .upload-area:hover {
+                    border-color: var(--gold);
+                    background: rgba(212, 175, 55, 0.05);
+                }
+
+                .upload-icon {
+                    font-size: 2rem;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+                .upload-label {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.75rem;
+                    color: var(--text-muted);
+                    letter-spacing: 1px;
+                }
+
+                /* Summary Sidebar */
+                .summary-card {
+                    background: var(--dark-grey);
+                    border: 1px solid var(--border);
+                    border-radius: 20px;
+                    padding: 30px;
+                    position: sticky;
+                    top: 100px;
+                }
+
+                .summary-title {
                     font-family: 'Orbitron', sans-serif;
                     font-size: 1.1rem;
                     font-weight: 700;
@@ -251,23 +399,13 @@ app.get('/checkout/:amount', (req, res) => {
                     margin-bottom: 25px;
                     text-transform: uppercase;
                     letter-spacing: 2px;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-
-                .card-title::after {
-                    content: '';
-                    flex-grow: 1;
-                    height: 1px;
-                    background: linear-gradient(to right, var(--border), transparent);
                 }
 
                 .summary-row {
                     display: flex;
                     justify-content: space-between;
                     margin-bottom: 12px;
-                    font-size: 0.95rem;
+                    font-size: 0.9rem;
                 }
 
                 .summary-label { color: var(--text-muted); }
@@ -284,29 +422,27 @@ app.get('/checkout/:amount', (req, res) => {
 
                 .total-label {
                     font-family: 'Orbitron', sans-serif;
-                    font-size: 1rem;
+                    font-size: 0.9rem;
                     font-weight: 700;
                     color: var(--white);
                 }
 
                 .total-value {
                     font-family: 'Orbitron', sans-serif;
-                    font-size: 1.8rem;
+                    font-size: 1.6rem;
                     font-weight: 900;
                     color: var(--gold);
                 }
 
+                /* Widget Placeholder Styling */
                 #payment-widget-container {
-                    min-height: 350px;
+                    min-height: 400px;
                     background: #000;
                     border-radius: 12px;
-                    border: 1px dashed #222;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    position: relative;
-                    transition: all 0.3s ease;
                 }
 
                 .spinner {
@@ -335,7 +471,7 @@ app.get('/checkout/:amount', (req, res) => {
                 .trust-badge {
                     text-align: center;
                     margin-top: 25px;
-                    font-size: 0.7rem;
+                    font-size: 0.65rem;
                     color: #333;
                     letter-spacing: 1px;
                     text-transform: uppercase;
@@ -345,45 +481,91 @@ app.get('/checkout/:amount', (req, res) => {
                     gap: 15px;
                 }
 
-                .rate-badge {
-                    background: #111;
-                    padding: 5px 12px;
-                    border-radius: 100px;
-                    border: 1px solid #222;
-                    font-size: 0.65rem;
-                    color: #444;
-                    font-weight: 700;
-                    margin-top: 15px;
-                    display: inline-block;
-                }
-
-                @media (max-width: 480px) {
-                    .checkout-wrapper { margin: 30px auto; }
-                    .card { padding: 25px; }
-                    .logo-text { font-size: 1.6rem; }
-                    .total-value { font-size: 1.5rem; }
+                @media (max-width: 900px) {
+                    .checkout-layout { grid-template-columns: 1fr; }
+                    .summary-card { position: static; }
                 }
             </style>
         </head>
         <body>
-            <div class="checkout-wrapper">
+            <div class="checkout-layout">
                 <div class="logo-area">
                     <div class="logo-text">WOLF GAMING</div>
                 </div>
 
-                <!-- Complete Your Purchase Container -->
+                <!-- Main Payment Column -->
                 <div class="card">
-                    <div class="card-title">Order Summary</div>
+                    <div class="tabs-container">
+                        <button class="tab-btn active" onclick="switchTab('card')">Pay with Card</button>
+                        <button class="tab-btn" onclick="switchTab('crypto')">Pay with Crypto</button>
+                    </div>
+
+                    <!-- Card Payment Content -->
+                    <div id="card-content" class="tab-content active">
+                        <div id="payment-widget-container">
+                            <div class="spinner"></div>
+                            <div class="loading-msg">Securely connecting to payment provider...</div>
+                        </div>
+                        <div class="trust-badge">
+                            <span>SSL SECURED</span>
+                            <span>•</span>
+                            <span>DISCRETE BILLING</span>
+                            <span>•</span>
+                            <span>24/7 SUPPORT</span>
+                        </div>
+                    </div>
+
+                    <!-- Crypto Payment Content -->
+                    <div id="crypto-content" class="tab-content">
+                        <div class="crypto-info">
+                            <div class="qr-container">
+                                <!-- QR Code Placeholder -->
+                                <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0 0H60V60H0V0ZM10 10V50H50V10H10Z" fill="#000"/>
+                                    <path d="M80 0H140V60H80V0ZM90 10V50H130V10H90Z" fill="#000"/>
+                                    <path d="M0 80H60V140H0V80ZM10 90V130H50V90H10Z" fill="#000"/>
+                                    <rect x="25" y="25" width="10" height="10" fill="#000"/>
+                                    <rect x="105" y="25" width="10" height="10" fill="#000"/>
+                                    <rect x="25" y="105" width="10" height="10" fill="#000"/>
+                                    <path d="M80 80H100V100H80V80Z" fill="#000"/>
+                                    <path d="M120 120H140V140H120V120Z" fill="#000"/>
+                                    <path d="M100 100H120V120H100V100Z" fill="#000"/>
+                                    <path d="M120 80H140V100H120V80Z" fill="#000"/>
+                                    <path d="M80 120H100V140H80V120Z" fill="#000"/>
+                                </svg>
+                            </div>
+                            
+                            <p class="summary-label" style="margin-bottom: 10px; font-size: 0.8rem; font-family: 'Orbitron';">Network: USDT (TRC20)</p>
+                            <div class="address-field">
+                                <span class="address-text" id="wallet-address">TMv7p8X9zY4kQ2mN5rS1wX0jL3hB6vF9gA</span>
+                                <button class="copy-btn" onclick="copyAddress()">COPY</button>
+                            </div>
+
+                            <div class="upload-area" onclick="document.getElementById('proof-upload').click()">
+                                <input type="file" id="proof-upload" style="display: none;">
+                                <span class="upload-icon">📸</span>
+                                <div class="upload-label">UPLOAD PROOF OF PAYMENT</div>
+                                <p style="font-size: 0.6rem; color: #444; margin-top: 10px;">Drag and drop or click to upload screenshot</p>
+                            </div>
+
+                            <button class="btn" style="width: 100%; margin-top: 30px; border-radius: 12px;" onclick="alert('Checking transaction...')">VERIFY PAYMENT</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Sidebar -->
+                <div class="summary-card">
+                    <div class="summary-title">Order Summary</div>
                     <div class="summary-row">
-                        <span class="summary-label">Selected Item</span>
+                        <span class="summary-label">Product</span>
                         <span class="summary-value">${productName}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">Deposit Amount</span>
+                        <span class="summary-label">Base Amount</span>
                         <span class="summary-value">${displayBase}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">Platform Service (2%)</span>
+                        <span class="summary-label">Platform Service</span>
                         <span class="summary-value">${displayService}</span>
                     </div>
                     
@@ -392,37 +574,30 @@ app.get('/checkout/:amount', (req, res) => {
                         <span class="total-value">$${totalUSD} USD</span>
                     </div>
                     
-                    <div style="text-align: center;">
-                        <span class="rate-badge">LIVE RATE: 1 USD = ${currentRate.toFixed(3)} ILS</span>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title" style="justify-content: center; border-bottom: none; margin-bottom: 30px;">
-                        Complete Your Purchase
-                    </div>
-                    
-                    <div id="payment-widget-container">
-                        <div class="spinner"></div>
-                        <div class="loading-msg">Securely connecting to payment provider...</div>
-                    </div>
-
-                    <div class="trust-badge">
-                        <span>SSL SECURED</span>
-                        <span>•</span>
-                        <span>DISCRETE BILLING</span>
-                        <span>•</span>
-                        <span>24/7 SUPPORT</span>
-                    </div>
+                    <p style="font-size: 0.65rem; color: #444; margin-top: 20px; line-height: 1.4;">
+                        * 1 USD = ${currentRate.toFixed(3)} ILS (Live Rate Applied)
+                    </p>
                 </div>
             </div>
 
             <script>
-                // This is the container for the future Fiat-to-Crypto widget injection
-                window.addEventListener('load', function() {
-                    console.log("Checkout page initialized. Ready for widget injection.");
-                    // Integration code for providers like Transak, Banxa or Simplex goes here
-                });
+                function switchTab(tab) {
+                    // Update buttons
+                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    event.target.classList.add('active');
+
+                    // Update content
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    document.getElementById(tab + '-content').classList.add('active');
+                }
+
+                function copyAddress() {
+                    const address = document.getElementById('wallet-address').innerText;
+                    navigator.clipboard.writeText(address);
+                    const btn = document.querySelector('.copy-btn');
+                    btn.innerText = 'COPIED!';
+                    setTimeout(() => btn.innerText = 'COPY', 2000);
+                }
             </script>
         </body>
         </html>
