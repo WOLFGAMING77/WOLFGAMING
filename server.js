@@ -411,6 +411,44 @@ app.get('/checkout/:amount', (req, res) => {
                 .summary-label { color: var(--text-muted); }
                 .summary-value { color: var(--white); font-weight: 500; }
 
+                /* Security Box Styling */
+                .security-box {
+                    margin-top: 20px;
+                    padding: 20px;
+                    background: rgba(212, 175, 55, 0.03);
+                    border: 1px solid rgba(212, 175, 55, 0.1);
+                    border-radius: 12px;
+                }
+
+                .security-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 12px;
+                    font-size: 0.8rem;
+                    color: #aaa;
+                }
+
+                .security-icon {
+                    color: var(--gold);
+                    font-size: 1rem;
+                }
+
+                .trust-logos {
+                    display: flex;
+                    justify-content: center;
+                    gap: 20px;
+                    margin-top: 20px;
+                    padding-top: 15px;
+                    border-top: 1px solid rgba(255,255,255,0.05);
+                }
+
+                .trust-logo {
+                    height: 20px;
+                    filter: grayscale(1) brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(10deg);
+                    opacity: 0.6;
+                }
+
                 .total-row {
                     margin-top: 20px;
                     padding-top: 20px;
@@ -577,6 +615,33 @@ app.get('/checkout/:amount', (req, res) => {
                     <p style="font-size: 0.65rem; color: #444; margin-top: 20px; line-height: 1.4;">
                         * 1 USD = ${currentRate.toFixed(3)} ILS (Live Rate Applied)
                     </p>
+
+                    <!-- Security & Verification Box -->
+                    <div class="security-box">
+                        <div class="security-item">
+                            <span class="security-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </span>
+                            <span>Instant ID Verification</span>
+                        </div>
+                        <div class="security-item">
+                            <span class="security-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><path d="M12 18h.01"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            </span>
+                            <span>SMS 3D-Secure Protection</span>
+                        </div>
+                        <div class="security-item" style="margin-bottom: 0;">
+                            <span class="security-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            </span>
+                            <span>First-Time Purchase Guard</span>
+                        </div>
+
+                        <div class="trust-logos">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.svg" alt="Visa Secure" class="trust-logo">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard ID Check" class="trust-logo">
+                        </div>
+                    </div>
                 </div>
             </div>
 
