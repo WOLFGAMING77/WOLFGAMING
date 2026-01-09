@@ -12,10 +12,10 @@
             theme: {
                 extend: {
                     colors: {
-                        dark: '#0f172a',
-                        primary: '#00f2ff',
-                        secondary: '#bc13fe',
-                        card: '#1e293b'
+                        dark: '#000000',
+                        primary: '#d4af37',
+                        secondary: '#ffffff',
+                        card: '#0a0a0a'
                     },
                     fontFamily: {
                         orbitron: ['Orbitron', 'sans-serif'],
@@ -27,14 +27,14 @@
     </script>
     <style>
         body {
-            background-color: #0f172a;
+            background-color: #000000;
             color: #f8fafc;
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
         }
         .orbitron { font-family: 'Orbitron', sans-serif; }
         .gradient-text {
-            background: linear-gradient(to right, #00f2ff, #bc13fe);
+            background: linear-gradient(to right, #d4af37, #ffffff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -46,8 +46,8 @@
         }
         .gaming-card:hover {
             transform: translateY(-10px);
-            border-color: #00f2ff;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            border-color: #d4af37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
         }
         .neon-btn {
             position: relative;
@@ -55,7 +55,7 @@
             transition: all 0.3s ease;
         }
         .neon-btn:hover {
-            box-shadow: 0 0 15px #00f2ff;
+            box-shadow: 0 0 15px #d4af37;
         }
         .section-divider {
             height: 2px;
@@ -133,7 +133,7 @@
                 </div>
                 <!-- Card 3 -->
                 <div class="gaming-card rounded-2xl p-6 flex flex-col items-center">
-                    <div class="w-16 h-16 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 border border-purple-500/20">
+                    <div class="w-16 h-16 bg-gold-500/10 rounded-xl flex items-center justify-center mb-6 border border-gold-500/20">
                         <span class="text-3xl">⚡</span>
                     </div>
                     <h3 class="orbitron text-sm font-bold mb-2 text-center h-10">ULTRA LATENCY BYPASS</h3>
@@ -372,12 +372,12 @@
                 const totalUSD = (totalILS / liveRate).toFixed(2);
                 previewVal.innerText = totalUSD;
 
-                input.style.borderColor = '#00f2ff';
+                input.style.borderColor = '#d4af37';
                 btn.disabled = false;
-                btn.style.borderColor = '#00f2ff';
-                btn.style.color = '#00f2ff';
+                btn.style.borderColor = '#d4af37';
+                btn.style.color = '#d4af37';
                 btn.style.cursor = 'pointer';
-                btn.classList.add('hover:bg-primary', 'hover:text-dark', 'shadow-[0_0_15px_rgba(0,242,255,0.3)]');
+                btn.classList.add('hover:bg-primary', 'hover:text-dark', 'shadow-[0_0_15px_rgba(212,175,55,0.3)]');
             } else if (input.value !== "") {
                 error.classList.remove('hidden');
                 preview.classList.add('hidden');

@@ -104,12 +104,12 @@ const sendTelegram = async (message) => {
 const commonStyles = `
 <style>
     body { background: #050505; color: white; font-family: 'Orbitron', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-    .container { background: #0a0a0a; border: 1px solid #00f2ff; padding: 40px; border-radius: 20px; box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); max-width: 500px; width: 100%; text-align: center; }
-    .logo { font-size: 2.5rem; font-weight: bold; color: #00f2ff; text-shadow: 0 0 15px #00f2ff; margin-bottom: 30px; }
+    .container { background: #0a0a0a; border: 1px solid #d4af37; padding: 40px; border-radius: 20px; box-shadow: 0 0 20px rgba(212, 175, 55, 0.1); max-width: 500px; width: 100%; text-align: center; }
+    .logo { font-size: 2.5rem; font-weight: bold; color: #d4af37; text-shadow: 0 0 15px rgba(212, 175, 55, 0.3); margin-bottom: 30px; }
     input { width: 100%; padding: 15px; margin: 10px 0; background: #111; border: 1px solid #333; color: white; border-radius: 10px; font-family: sans-serif; }
-    .summary-box { background: #111; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; border-left: 4px solid #bc13fe; }
-    .btn { background: transparent; color: #00f2ff; border: 1px solid #00f2ff; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: 0.3s; width: 100%; margin-top: 20px; }
-    .btn:hover { background: #00f2ff; color: #000; box-shadow: 0 0 30px #00f2ff; }
+    .summary-box { background: #111; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; border-left: 4px solid #d4af37; }
+    .btn { background: transparent; color: #d4af37; border: 1px solid #d4af37; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: 0.3s; width: 100%; margin-top: 20px; }
+    .btn:hover { background: #d4af37; color: #000; box-shadow: 0 0 30px #d4af37; }
     .note { font-size: 0.8rem; color: #888; margin-top: 10px; font-family: sans-serif; }
     .receipt-item { display: flex; justify-content: space-between; margin: 10px 0; font-family: sans-serif; }
 </style>
@@ -169,13 +169,10 @@ app.get('/checkout/:amount', (req, res) => {
     
     if (isILS) {
         baseILS = amount;
-        feeILS = amount * 0.02; // 2% fee as requested
+        feeILS = amount * 0.02; 
         totalILS = baseILS + feeILS;
         totalUSD = (totalILS / currentRate).toFixed(2);
     } else {
-        // For fixed USD packages, we still use the old logic but with 2% fee if desired, 
-        // or keep as is. The prompt specifically mentions ILS for the deposit system.
-        // Let's use 2% for everything for consistency as per the "Update the deposit system" prompt.
         const feeVal = amount * 0.02;
         totalUSD = (amount + feeVal).toFixed(2);
         baseILS = (amount * currentRate);
@@ -186,36 +183,249 @@ app.get('/checkout/:amount', (req, res) => {
     const displayService = isILS ? `${feeILS.toFixed(2)} ILS` : `$${(amount * 0.02).toFixed(2)} USD`;
 
     res.send(`
-        ${commonStyles}
-        <div class="container">
-            <div class="logo">WOLF GAMING</div>
-            <h2>Checkout</h2>
-            <p style="color:#888;">Product: <b style="color:#00f2ff;">${productName}</b></p>
-            <form action="/api/process-payment" method="POST">
-                <input type="hidden" name="totalAmount" value="${totalUSD}">
-                <input type="hidden" name="productName" value="${productName}">
-                <input type="text" name="name" placeholder="Full Name" required>
-                <input type="email" name="email" placeholder="Email Address" required>
-                <div class="note">Your digital assets will be delivered to this email.</div>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Complete Your Purchase | WOLF GAMING</title>
+            <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+            <style>
+                :root { 
+                    --gold: #d4af37; 
+                    --black: #000000; 
+                    --dark-grey: #0a0a0a;
+                    --border: #1a1a1a;
+                    --white: #ffffff; 
+                    --text-muted: #888;
+                }
                 
-                <div class="summary-box">
-                    <div class="receipt-item"><span>Deposit Amount:</span> <span>${displayBase}</span></div>
-                    <div class="receipt-item"><span>Platform Service:</span> <span>${displayService}</span></div>
-                    <hr style="border:0; border-top:1px solid #334155; margin: 10px 0;">
-                    <div class="receipt-item" style="font-weight:bold; color:#00f2ff; font-size: 1.2rem;">
-                        <span>Total to Pay:</span> 
-                        <span>$${totalUSD} USD</span>
+                body { 
+                    background: var(--black); 
+                    color: var(--white); 
+                    font-family: 'Inter', sans-serif; 
+                    margin: 0; 
+                    padding: 0; 
+                    display: flex; 
+                    flex-direction: column; 
+                    align-items: center; 
+                    min-height: 100vh; 
+                    box-sizing: border-box;
+                }
+
+                .checkout-wrapper {
+                    max-width: 550px;
+                    width: 90%;
+                    margin: 60px auto;
+                }
+
+                .logo-area {
+                    text-align: center;
+                    margin-bottom: 40px;
+                }
+
+                .logo-text {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 2.2rem;
+                    font-weight: 900;
+                    color: var(--gold);
+                    letter-spacing: 8px;
+                    text-transform: uppercase;
+                    text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+                }
+
+                .card {
+                    background: var(--dark-grey);
+                    border: 1px solid var(--border);
+                    border-radius: 20px;
+                    padding: 35px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                    margin-bottom: 25px;
+                }
+
+                .card-title {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: var(--gold);
+                    margin-bottom: 25px;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .card-title::after {
+                    content: '';
+                    flex-grow: 1;
+                    height: 1px;
+                    background: linear-gradient(to right, var(--border), transparent);
+                }
+
+                .summary-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 12px;
+                    font-size: 0.95rem;
+                }
+
+                .summary-label { color: var(--text-muted); }
+                .summary-value { color: var(--white); font-weight: 500; }
+
+                .total-row {
+                    margin-top: 20px;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--border);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: baseline;
+                }
+
+                .total-label {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: var(--white);
+                }
+
+                .total-value {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.8rem;
+                    font-weight: 900;
+                    color: var(--gold);
+                }
+
+                #payment-widget-container {
+                    min-height: 350px;
+                    background: #000;
+                    border-radius: 12px;
+                    border: 1px dashed #222;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                    transition: all 0.3s ease;
+                }
+
+                .spinner {
+                    width: 45px;
+                    height: 45px;
+                    border: 3px solid rgba(212, 175, 55, 0.1);
+                    border-top: 3px solid var(--gold);
+                    border-radius: 50%;
+                    animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+                    margin-bottom: 20px;
+                }
+
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+
+                .loading-msg {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 0.75rem;
+                    color: #555;
+                    letter-spacing: 1.5px;
+                    text-transform: uppercase;
+                }
+
+                .trust-badge {
+                    text-align: center;
+                    margin-top: 25px;
+                    font-size: 0.7rem;
+                    color: #333;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 15px;
+                }
+
+                .rate-badge {
+                    background: #111;
+                    padding: 5px 12px;
+                    border-radius: 100px;
+                    border: 1px solid #222;
+                    font-size: 0.65rem;
+                    color: #444;
+                    font-weight: 700;
+                    margin-top: 15px;
+                    display: inline-block;
+                }
+
+                @media (max-width: 480px) {
+                    .checkout-wrapper { margin: 30px auto; }
+                    .card { padding: 25px; }
+                    .logo-text { font-size: 1.6rem; }
+                    .total-value { font-size: 1.5rem; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="checkout-wrapper">
+                <div class="logo-area">
+                    <div class="logo-text">WOLF GAMING</div>
+                </div>
+
+                <!-- Complete Your Purchase Container -->
+                <div class="card">
+                    <div class="card-title">Order Summary</div>
+                    <div class="summary-row">
+                        <span class="summary-label">Selected Item</span>
+                        <span class="summary-value">${productName}</span>
                     </div>
-                    <div style="font-size: 0.7rem; color: #555; margin-top: 10px; text-align: center;">
-                        <span style="display: inline-block; padding: 2px 6px; border: 1px solid #222; border-radius: 4px;">
-                            Live Rate: 1 USD = ${currentRate.toFixed(3)} ILS
-                        </span>
+                    <div class="summary-row">
+                        <span class="summary-label">Deposit Amount</span>
+                        <span class="summary-value">${displayBase}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Platform Service (2%)</span>
+                        <span class="summary-value">${displayService}</span>
+                    </div>
+                    
+                    <div class="total-row">
+                        <span class="total-label">Total to Pay</span>
+                        <span class="total-value">$${totalUSD} USD</span>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <span class="rate-badge">LIVE RATE: 1 USD = ${currentRate.toFixed(3)} ILS</span>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn">Confirm Deposit $${totalUSD}</button>
-            </form>
-        </div>
+
+                <div class="card">
+                    <div class="card-title" style="justify-content: center; border-bottom: none; margin-bottom: 30px;">
+                        Complete Your Purchase
+                    </div>
+                    
+                    <div id="payment-widget-container">
+                        <div class="spinner"></div>
+                        <div class="loading-msg">Securely connecting to payment provider...</div>
+                    </div>
+
+                    <div class="trust-badge">
+                        <span>SSL SECURED</span>
+                        <span>•</span>
+                        <span>DISCRETE BILLING</span>
+                        <span>•</span>
+                        <span>24/7 SUPPORT</span>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // This is the container for the future Fiat-to-Crypto widget injection
+                window.addEventListener('load', function() {
+                    console.log("Checkout page initialized. Ready for widget injection.");
+                    // Integration code for providers like Transak, Banxa or Simplex goes here
+                });
+            </script>
+        </body>
+        </html>
     `);
 });
 
