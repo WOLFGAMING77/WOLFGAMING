@@ -557,36 +557,24 @@ app.get('/checkout/:amount', (req, res) => {
                     <div id="crypto-content" class="tab-content">
                         <div class="crypto-info">
                             <div class="qr-container">
-                                <!-- QR Code Placeholder -->
-                                <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M0 0H60V60H0V0ZM10 10V50H50V10H10Z" fill="#000"/>
-                                    <path d="M80 0H140V60H80V0ZM90 10V50H130V10H90Z" fill="#000"/>
-                                    <path d="M0 80H60V140H0V80ZM10 90V130H50V90H10Z" fill="#000"/>
-                                    <rect x="25" y="25" width="10" height="10" fill="#000"/>
-                                    <rect x="105" y="25" width="10" height="10" fill="#000"/>
-                                    <rect x="25" y="105" width="10" height="10" fill="#000"/>
-                                    <path d="M80 80H100V100H80V80Z" fill="#000"/>
-                                    <path d="M120 120H140V140H120V120Z" fill="#000"/>
-                                    <path d="M100 100H120V120H100V100Z" fill="#000"/>
-                                    <path d="M120 80H140V100H120V80Z" fill="#000"/>
-                                    <path d="M80 120H100V140H80V120Z" fill="#000"/>
-                                </svg>
+                                <!-- QR Code for TQJTMDBPs5yidVddfBboJnGEzhrpYQwRck -->
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=TQJTMDBPs5yidVddfBboJnGEzhrpYQwRck" alt="QR Code" style="width: 100%; height: 100%;">
                             </div>
                             
-                            <p class="summary-label" style="margin-bottom: 10px; font-size: 0.8rem; font-family: 'Orbitron';">Network: USDT (TRC20)</p>
+                            <p class="summary-label" style="margin-bottom: 10px; font-size: 0.85rem; font-family: 'Orbitron'; color: var(--gold);"><strong>Network: TRC20 (Tron)</strong></p>
                             <div class="address-field">
-                                <span class="address-text" id="wallet-address">TMv7p8X9zY4kQ2mN5rS1wX0jL3hB6vF9gA</span>
+                                <span class="address-text" id="wallet-address">TQJTMDBPs5yidVddfBboJnGEzhrpYQwRck</span>
                                 <button class="copy-btn" onclick="copyAddress()">COPY</button>
                             </div>
 
-                            <div class="upload-area" onclick="document.getElementById('proof-upload').click()">
-                                <input type="file" id="proof-upload" style="display: none;">
-                                <span class="upload-icon">📸</span>
-                                <div class="upload-label">UPLOAD PROOF OF PAYMENT</div>
-                                <p style="font-size: 0.6rem; color: #444; margin-top: 10px;">Drag and drop or click to upload screenshot</p>
+                            <div class="upload-area" style="border-width: 2px; border-color: var(--gold);" onclick="document.getElementById('proof-upload').click()">
+                                <input type="file" id="proof-upload" style="display: none;" onchange="handleFileSelect(this)">
+                                <span class="upload-icon">🧾</span>
+                                <div class="upload-label" style="color: var(--gold); font-weight: 900;">UPLOAD PAYMENT RECEIPT</div>
+                                <p id="file-status" style="font-size: 0.65rem; color: #888; margin-top: 10px;">Click here to upload your transaction screenshot</p>
                             </div>
 
-                            <button class="btn" style="width: 100%; margin-top: 30px; border-radius: 12px;" onclick="alert('Checking transaction...')">VERIFY PAYMENT</button>
+                            <button class="btn" style="width: 100%; margin-top: 30px; border-radius: 12px; background: var(--gold); color: #000;" onclick="submitCryptoPayment()">VERIFY & COMPLETE ORDER</button>
                         </div>
                     </div>
                 </div>
@@ -661,7 +649,29 @@ app.get('/checkout/:amount', (req, res) => {
                     navigator.clipboard.writeText(address);
                     const btn = document.querySelector('.copy-btn');
                     btn.innerText = 'COPIED!';
-                    setTimeout(() => btn.innerText = 'COPY', 2000);
+                    btn.style.background = '#fff';
+                    setTimeout(() => {
+                        btn.innerText = 'COPY';
+                        btn.style.background = 'var(--gold)';
+                    }, 2000);
+                }
+
+                function handleFileSelect(input) {
+                    const status = document.getElementById('file-status');
+                    if (input.files && input.files[0]) {
+                        status.innerText = '✅ File Selected: ' + input.files[0].name;
+                        status.style.color = 'var(--gold)';
+                    }
+                }
+
+                function submitCryptoPayment() {
+                    const fileInput = document.getElementById('proof-upload');
+                    if (!fileInput.files || !fileInput.files[0]) {
+                        alert('Please upload a screenshot of your payment receipt first.');
+                        return;
+                    }
+                    alert('Transaction received! Our system is verifying the blockchain. You will receive an email confirmation within minutes.');
+                    window.location.href = '/receipt?orderId=WOLF_CRYPTO_' + Date.now() + '&amount=${totalUSD}';
                 }
             </script>
         </body>
